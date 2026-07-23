@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Quotation Portal — FDH Financial Holdings</title>
+<style>
+  :root{
+    --fdh-blue:#00539B;        /* FDH primary blue */
+    --fdh-blue-dark:#003D73;   /* darker header blue */
+    --fdh-gold:#C9A227;        /* FDH gold/amber accent */
+    --fdh-gold-soft:#E8D9A0;
+    --ink:#1c2733; --muted:#6a7683; --line:#e2e8f0; --bg:#f4f7fa; --card:#ffffff;
+    --ok:#1a7f4b; --ok-bg:#e7f6ee; --err:#c0392b; --err-bg:#fdeceb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  /* Header */
+  .topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .topbar .brand{display:flex;align-items:center;gap:14px}
+  .topbar img{height:44px;width:auto;display:block}
+  .topbar .brand-text{font-size:13px;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3}
+  .topbar .brand-text strong{display:block;color:var(--fdh-blue);font-size:15px}
+  .hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px}
+  .hero .wrap{max-width:960px;margin:0 auto}
+  .hero h1{margin:0 0 4px;font-size:22px;font-weight:600}
+  .hero p{margin:0;opacity:.9;font-size:14px}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 28px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:14px;margin:0 0 16px;color:var(--fdh-blue);font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--fdh-gold);padding-bottom:8px;display:inline-block}
+  .rfq-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+  .rfq-meta .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .rfq-meta .v{font-size:15px;font-weight:600;margin-top:3px;color:var(--ink)}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#f8fafc}
+  td.num,th.num{text-align:right}
+  input[type=number],input[type=text],textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff}
+  input:focus,textarea:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.12)}
+  .price-in{max-width:160px}
+  .linetotal{font-variant-numeric:tabular-nums;font-weight:700;color:var(--fdh-blue)}
+  .grand{display:flex;justify-content:flex-end;gap:16px;align-items:baseline;margin-top:16px;padding-top:14px;border-top:2px solid var(--fdh-gold-soft);font-size:15px}
+  .grand .amt{font-size:24px;font-weight:800;color:var(--fdh-blue);font-variant-numeric:tabular-nums}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .file-drop{border:1.5px dashed var(--fdh-blue);border-radius:9px;padding:18px;text-align:center;background:#f5f9fd;cursor:pointer;color:var(--fdh-blue);font-weight:500}
+  .file-drop:hover{background:#eef5fc}
+  .file-list{margin-top:10px;font-size:13px}
+  .file-list div{padding:4px 0;color:var(--muted)}
+  .btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;transition:background .15s}
+  .btn:hover{background:var(--fdh-blue-dark)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .msg{padding:13px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;display:none;font-weight:500}
+  .msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b7e4cb;display:block}
+  .msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd;display:block}
+  .loading{text-align:center;padding:70px 20px;color:var(--muted)}
+  .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;background:#e8f0f8;color:var(--fdh-blue)}
+  .badge.past{background:var(--err-bg);color:var(--err)}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  footer strong{color:var(--fdh-blue)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH Financial Holdings" onerror="this.style.display='none'">
+    <span class="brand-text"><strong>Supplier Quotation Portal</strong>FDH Financial Holdings - Operion Procure System</span>
+  </div>
+</div>
+<div class="hero"><div class="wrap"><h1>Request for Quotation</h1><p>Please review the items below and submit your best pricing before the closing deadline.</p></div></div>
+
+<div class="wrap">
+  <div id="loading" class="loading">Loading your Request for Quotation…</div>
+
+  <div id="content" style="display:none">
+    <div id="banner" class="msg"></div>
+
+    <div class="card">
+      <h2>RFQ Details</h2>
+      <div class="rfq-meta">
+        <div><div class="k">RFQ Number</div><div class="v" id="m-rfqno">—</div></div>
+        <div><div class="k">Subject</div><div class="v" id="m-subject">—</div></div>
+        <div><div class="k">Your Company</div><div class="v" id="m-supplier">—</div></div>
+        <div><div class="k">Submission Deadline</div><div class="v"><span id="m-deadline" class="badge">—</span></div></div>
+      </div>
+    </div>
+
+    <div class="card" id="terms-card" style="display:none">
+      <h2>Terms &amp; Requirements</h2>
+      <div id="terms-block" style="margin-bottom:18px">
+        <div class="k" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px">Terms and Conditions</div>
+        <div id="m-terms" style="font-size:14px;white-space:pre-wrap;color:var(--ink)"></div>
+      </div>
+      <div id="delivery-block">
+        <div class="k" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px">Delivery Requirements</div>
+        <div id="m-delivery" style="font-size:14px;white-space:pre-wrap;color:var(--ink)"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Item Pricing</h2>
+      <table id="lines">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Item Description</th>
+            <th class="num" style="width:90px">Qty</th>
+            <th class="num" style="width:170px">Unit Price (MWK)</th>
+            <th class="num" style="width:150px">Line Total</th>
+          </tr>
+        </thead>
+        <tbody id="lines-body"></tbody>
+      </table>
+      <div class="grand">Total Quoted:&nbsp; <span class="amt" id="grandtotal">MWK 0.00</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Additional Information</h2>
+      <div class="field"><label>Delivery Lead Time (days)</label><input type="number" id="leadtime" min="0" placeholder="e.g. 14"></div>
+      <div class="field"><label>Quote Validity (days)</label><input type="number" id="validity" min="0" placeholder="e.g. 30"></div>
+      <div class="field"><label>Notes / Comments</label><textarea id="notes" rows="3" placeholder="Any conditions, remarks, or clarifications"></textarea></div>
+      <div class="field">
+        <label>Supporting Documents</label>
+        <div class="file-drop" id="dropzone">📎 &nbsp;Click to attach files (quotation letter, brochures, certificates)</div>
+        <input type="file" id="files" multiple style="display:none">
+        <div class="file-list" id="filelist"></div>
+      </div>
+    </div>
+
+    <button class="btn" id="submitBtn">Submit Quotation</button>
+  </div>
+
+  <footer>© <span id="yr"></span> <strong>FDH Financial Holdings Limited</strong> · Operion Procure &nbsp;|&nbsp; Your submission remains confidential until evaluation.</footer>
+</div>
+
+<script>
+// ==== CONFIG — replace with your Power Automate flow endpoints ====
+const CONFIG = {
+  FETCH_URL:  "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/24/workflows/55373c7d10fb4d98b8bd8ce9b3625fc8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=c4tSmO6Sr2oJl_Let0f242zrFr5HaH5HOyAuW4FRBZg",
+  SUBMIT_URL: "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/21/workflows/2492388ad2804d72841c077168192d79/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=kK-MFS-7hfkbdv0_qi235fzsMorcnyhIJ3IO1WjlO5Y"
+};
+// =================================================================
+document.getElementById("yr").textContent = new Date().getFullYear();
+const params = new URLSearchParams(location.search);
+const TOKEN = params.get("token");
+let LINES = [], DEADLINE_PAST = false, attachedFiles = [];
+
+function money(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function recalc(){
+  let grand=0;
+  LINES.forEach((ln,i)=>{ const price=parseFloat(document.getElementById("p"+i).value)||0; const t=price*(Number(ln.quantity)||0); document.getElementById("t"+i).textContent=money(t); grand+=t; });
+  document.getElementById("grandtotal").textContent=money(grand);
+}
+function renderLines(){
+  const body=document.getElementById("lines-body"); body.innerHTML="";
+  LINES.forEach((ln,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td>'+(ln.lineNumber||i+1)+'</td>'+
+      '<td>'+(ln.itemDescription||"")+(ln.specification?'<div class="hint">'+ln.specification+'</div>':'')+'</td>'+
+      '<td class="num">'+(Number(ln.quantity)||0)+'</td>'+
+      '<td class="num"><input class="price-in" type="number" min="0" step="0.01" id="p'+i+'" placeholder="0.00"></td>'+
+      '<td class="num linetotal" id="t'+i+'">MWK 0.00</td>';
+    body.appendChild(tr);
+  });
+  LINES.forEach((_,i)=>document.getElementById("p"+i).addEventListener("input",recalc)); recalc();
+}
+async function load(){
+  if(!TOKEN){ showFatal("This link is missing its invitation token. Please use the exact link sent to you by FDH Procurement."); return; }
+  try{
+    const sep=CONFIG.FETCH_URL.indexOf("?")>=0?"&":"?";
+    const res=await fetch(CONFIG.FETCH_URL+sep+"token="+encodeURIComponent(TOKEN));
+    if(!res.ok) throw new Error("Could not load the RFQ ("+res.status+").");
+    const data=await res.json();
+    if(data.error){ showFatal(data.error); return; }
+    var rfqNo=data.rfqNumber||"";
+    var looksLikeGuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rfqNo);
+    document.getElementById("m-rfqno").textContent=(rfqNo && !looksLikeGuid)?rfqNo:"—";
+    document.getElementById("m-subject").textContent=data.subject||"—";
+    document.getElementById("m-supplier").textContent=data.supplierName||"—";
+    const dl=document.getElementById("m-deadline");
+    if(data.deadline){ const d=new Date(data.deadline); dl.textContent=d.toLocaleString(); DEADLINE_PAST=d.getTime()<Date.now(); if(DEADLINE_PAST){dl.classList.add("past");dl.textContent+=" (closed)";} }
+    else dl.textContent="Not specified";
+    // Terms & Conditions / Delivery Requirements
+    var tc=(data.terms||"").trim(), dr=(data.deliveryRequirements||"").trim();
+    if(tc||dr){
+      document.getElementById("terms-card").style.display="block";
+      if(tc){ document.getElementById("m-terms").textContent=tc; }
+      else { document.getElementById("terms-block").style.display="none"; }
+      if(dr){ document.getElementById("m-delivery").textContent=dr; }
+      else { document.getElementById("delivery-block").style.display="none"; }
+    }
+
+    LINES=data.lines||[]; renderLines();
+    document.getElementById("loading").style.display="none";
+    document.getElementById("content").style.display="block";
+    if(data.alreadySubmitted){
+      // Show what they submitted (read-only), instead of an empty locked form.
+      if(Array.isArray(data.submittedLines)){
+        var byLine={};
+        data.submittedLines.forEach(function(sl){ if(sl && sl.rfqLineId) byLine[String(sl.rfqLineId).toLowerCase()]=sl; });
+        LINES.forEach(function(ln,i){
+          var m=byLine[String(ln.rfqLineId||"").toLowerCase()];
+          if(m && m.unitPrice!=null){ var el=document.getElementById("p"+i); if(el) el.value=m.unitPrice; }
+        });
+        recalc();
+      }
+      if(data.submittedLeadTime!=null) document.getElementById("leadtime").value=data.submittedLeadTime;
+      if(data.submittedValidity!=null) document.getElementById("validity").value=data.submittedValidity;
+      if(data.submittedNotes) document.getElementById("notes").value=data.submittedNotes;
+      document.getElementById("dropzone").style.display="none";
+      lockForm("You have already submitted a quotation for this RFQ. Your submitted pricing is shown below for your records.","ok");
+    }
+    else if(DEADLINE_PAST) lockForm("The submission deadline has passed. Late quotations cannot be accepted.");
+  }catch(e){ showFatal(e.message||"Failed to load the RFQ."); }
+}
+function showFatal(m){ document.getElementById("loading").innerHTML='<div class="msg err" style="display:block">'+m+'</div>'; }
+function lockForm(m,kind){ const b=document.getElementById("banner"); b.className="msg "+(kind==="ok"?"ok":"err"); b.textContent=m; b.style.display="block"; const sb=document.getElementById("submitBtn"); sb.disabled=true; sb.style.display="none"; document.querySelectorAll("input,textarea").forEach(el=>el.disabled=true); }
+document.getElementById("dropzone").addEventListener("click",()=>document.getElementById("files").click());
+document.getElementById("files").addEventListener("change",e=>{ attachedFiles=Array.from(e.target.files); document.getElementById("filelist").innerHTML=attachedFiles.map(f=>'<div>📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)</div>').join(""); });
+function fileToBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(",")[1]); r.onerror=rej; r.readAsDataURL(file); }); }
+document.getElementById("submitBtn").addEventListener("click",async()=>{
+  const btn=document.getElementById("submitBtn");
+  const lineData=LINES.map((ln,i)=>({rfqLineId:ln.rfqLineId,itemDescription:ln.itemDescription,quantity:ln.quantity,unitPrice:parseFloat(document.getElementById("p"+i).value)||0}));
+  if(lineData.some(l=>l.unitPrice<=0)){ const b=document.getElementById("banner"); b.className="msg err"; b.textContent="Please enter a unit price for every line item."; b.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
+  btn.disabled=true; btn.textContent="Submitting…";
+  try{
+    const files=[]; for(const f of attachedFiles){ files.push({name:f.name,contentBase64:await fileToBase64(f)}); }
+    const payload={token:TOKEN,leadTime:parseInt(document.getElementById("leadtime").value)||null,validity:parseInt(document.getElementById("validity").value)||null,notes:document.getElementById("notes").value||"",lines:lineData,files:files};
+    const res=await fetch(CONFIG.SUBMIT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    if(!res.ok) throw new Error("Submission failed ("+res.status+").");
+    const b=document.getElementById("banner"); b.className="msg ok"; b.textContent="✓ Your quotation has been submitted successfully. Thank you for participating."; b.style.display="block";
+    document.querySelectorAll("input,textarea").forEach(el=>el.disabled=true); btn.style.display="none"; window.scrollTo({top:0,behavior:"smooth"});
+  }catch(e){ const b=document.getElementById("banner"); b.className="msg err"; b.textContent=e.message; b.style.display="block"; btn.disabled=false; btn.textContent="Submit Quotation"; }
+});
+load();
+</script>
+</body>
+</html>

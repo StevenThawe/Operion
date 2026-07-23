@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Local Purchase Order — FDH Financial Holdings</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --fdh-blue:#00539B; --fdh-blue-dark:#003D73; --fdh-gold:#C9A227; --fdh-gold-soft:#E8D9A0;
+    --ink:#1c2733; --muted:#6a7683; --line:#e2e8f0; --bg:#f4f7fa; --card:#ffffff;
+    --ok:#1a7f4b; --ok-bg:#e7f6ee; --err:#c0392b; --err-bg:#fdeceb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  .topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 28px;display:flex;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .topbar .brand{display:flex;align-items:center;gap:14px}
+  .topbar img{height:44px;width:auto;display:block}
+  .topbar .brand-text{font-size:13px;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3}
+  .topbar .brand-text strong{display:block;color:var(--fdh-blue);font-size:15px}
+  .hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px}
+  .hero .wrap{max-width:960px;margin:0 auto;padding:0}
+  .hero h1{margin:0 0 4px;font-size:22px;font-weight:600}
+  .hero p{margin:0;opacity:.9;font-size:14px}
+  .wrap{max-width:960px;margin:0 auto;padding:24px 28px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:14px;margin:0 0 16px;color:var(--fdh-blue);font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--fdh-gold);padding-bottom:8px;display:inline-block}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+  .meta .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .meta .v{font-size:15px;font-weight:600;margin-top:3px;color:var(--ink)}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#f8fafc}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .grand{display:flex;justify-content:flex-end;gap:16px;align-items:baseline;margin-top:16px;padding-top:14px;border-top:2px solid var(--fdh-gold-soft);font-size:15px}
+  .grand .amt{font-size:24px;font-weight:800;color:var(--fdh-blue);font-variant-numeric:tabular-nums}
+  .terms{font-size:14px;white-space:pre-wrap}
+  .terms-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px}
+  .btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s}
+  .btn:hover{background:var(--fdh-blue-dark)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn-ghost{background:#fff;color:var(--fdh-blue);border:1.5px solid var(--fdh-blue)}
+  .btn-ghost:hover{background:#f0f6fc}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .actions .btn{flex:1;min-width:200px}
+  .msg{padding:13px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;display:none;font-weight:500}
+  .msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b7e4cb;display:block}
+  .msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd;display:block}
+  .loading{text-align:center;padding:70px 20px;color:var(--muted)}
+  .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;background:#e8f0f8;color:var(--fdh-blue)}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  input[type=text],textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit}
+  input:focus,textarea:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.12)}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  footer strong{color:var(--fdh-blue)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH Financial Holdings" onerror="this.style.display='none'">
+    <span class="brand-text"><strong>Local Purchase Order</strong>FDH Financial Holdings - Procurement</span>
+  </div>
+</div>
+<div class="hero"><div class="wrap"><h1>Local Purchase Order</h1><p>Please review this order and confirm receipt.</p></div></div>
+
+<div class="wrap">
+  <div id="loading" class="loading">Loading your purchase order…</div>
+
+  <div id="content" style="display:none">
+    <div id="banner" class="msg"></div>
+
+    <div class="actions">
+      <button class="btn btn-ghost" id="pdfBtn">Download PDF</button>
+      <button class="btn" id="ackBtn">Acknowledge Receipt</button>
+    </div>
+
+    <div class="card">
+      <h2>Order Details</h2>
+      <div class="meta">
+        <div><div class="k">LPO Number</div><div class="v" id="m-lpono">—</div></div>
+        <div><div class="k">Order Date</div><div class="v" id="m-orderdate">—</div></div>
+        <div><div class="k">Supplier</div><div class="v" id="m-supplier">—</div></div>
+        <div><div class="k">Total Amount</div><div class="v" id="m-total">—</div></div>
+      </div>
+    </div>
+
+    <div class="card" id="delivery-card" style="display:none">
+      <h2>Delivery</h2>
+      <div class="meta" style="margin-bottom:16px">
+        <div><div class="k">Required By</div><div class="v"><span id="m-deliverydate" class="badge">—</span></div></div>
+      </div>
+      <div id="address-block">
+        <div class="terms-label">Delivery Address</div>
+        <div class="terms" id="m-address"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Order Items</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Item Description</th>
+            <th class="num" style="width:90px">Qty</th>
+            <th class="num" style="width:150px">Unit Price</th>
+            <th class="num" style="width:160px">Line Total</th>
+          </tr>
+        </thead>
+        <tbody id="lines-body"></tbody>
+      </table>
+      <div class="grand">Order Total:&nbsp; <span class="amt" id="grandtotal">MWK 0.00</span></div>
+    </div>
+
+    <div class="card" id="terms-card" style="display:none">
+      <h2>Terms</h2>
+      <div id="payment-block" style="margin-bottom:18px">
+        <div class="terms-label">Payment Terms</div>
+        <div class="terms" id="m-payment"></div>
+      </div>
+      <div id="tc-block">
+        <div class="terms-label">Terms and Conditions</div>
+        <div class="terms" id="m-terms"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>© <span id="yr"></span> <strong>FDH Financial Holdings Limited</strong> · Operion Procure</footer>
+</div>
+
+<script>
+// ==== CONFIG — replace with your Power Automate flow endpoints ====
+const CONFIG = {
+  FETCH_URL: "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/18/workflows/2a9c4daafacb4e2f956cf3a90ce17aa8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=__g6Pu-8PUm-gWbcVogewkyAXU65MuxfcGRyepN-tQ4",
+  ACK_URL:   "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/26/workflows/d785ab15ae2649868167aad3f85ed138/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=gOj2y9EgSuwWu1Ws1Jc-5ll2cgEWOvLzFj1pMCyIM7w"
+};
+// Buyer details printed on the PDF.
+const BUYER = {
+  name: "FDH Financial Holdings Limited",
+  address: ["First Floor, Umoyo House", "Victoria Avenue", "P.O. Box 512", "Blantyre, Malawi"],
+  contact: ["Tel: (265) 111 820 219/397", "Fax: (265) 111 823 044"]
+};
+// =================================================================
+document.getElementById("yr").textContent = new Date().getFullYear();
+const params = new URLSearchParams(location.search);
+const TOKEN = params.get("token");
+let DATA = null, LINES = [];
+
+function money(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function plain(n){ return (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function dateOnly(v){ if(!v) return ""; const d=new Date(v); return isNaN(d)?"":d.toLocaleDateString(); }
+
+function renderLines(){
+  const body=document.getElementById("lines-body"); body.innerHTML="";
+  let grand=0;
+  LINES.forEach((ln,i)=>{
+    const total=Number(ln.lineTotal)|| (Number(ln.quantity)||0)*(Number(ln.unitPrice)||0);
+    grand+=total;
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td>'+(ln.lineNumber||i+1)+'</td>'+
+      '<td>'+(ln.itemDescription||"")+'</td>'+
+      '<td class="num">'+(Number(ln.quantity)||0)+'</td>'+
+      '<td class="num">'+plain(ln.unitPrice)+'</td>'+
+      '<td class="num" style="font-weight:700;color:var(--fdh-blue)">'+plain(total)+'</td>';
+    body.appendChild(tr);
+  });
+  document.getElementById("grandtotal").textContent=money(DATA.totalAmount||grand);
+}
+
+async function load(){
+  if(!TOKEN){ showFatal("This link is missing its order reference. Please use the exact link sent to you by FDH Procurement."); return; }
+  try{
+    const sep=CONFIG.FETCH_URL.indexOf("?")>=0?"&":"?";
+    const res=await fetch(CONFIG.FETCH_URL+sep+"token="+encodeURIComponent(TOKEN));
+    if(!res.ok) throw new Error("Could not load the purchase order ("+res.status+").");
+    DATA=await res.json();
+    if(DATA.error){ showFatal(DATA.error); return; }
+
+    document.getElementById("m-lpono").textContent=DATA.lpoNumber||"—";
+    document.getElementById("m-orderdate").textContent=dateOnly(DATA.orderDate)||"—";
+    document.getElementById("m-supplier").textContent=DATA.supplierName||"—";
+    document.getElementById("m-total").textContent=money(DATA.totalAmount);
+
+    var addr=(DATA.deliveryAddress||"").trim(), ddate=DATA.deliveryDateRequired;
+    if(addr||ddate){
+      document.getElementById("delivery-card").style.display="block";
+      if(addr) document.getElementById("m-address").textContent=addr;
+      else document.getElementById("address-block").style.display="none";
+      document.getElementById("m-deliverydate").textContent=dateOnly(ddate)||"Not specified";
+    }
+
+    var pay=(DATA.paymentTerms||"").trim(), tc=(DATA.terms||"").trim();
+    if(pay||tc){
+      document.getElementById("terms-card").style.display="block";
+      if(pay) document.getElementById("m-payment").textContent=pay;
+      else document.getElementById("payment-block").style.display="none";
+      if(tc) document.getElementById("m-terms").textContent=tc;
+      else document.getElementById("tc-block").style.display="none";
+    }
+
+    LINES=DATA.lines||[]; renderLines();
+    document.getElementById("loading").style.display="none";
+    document.getElementById("content").style.display="block";
+
+    if(DATA.acknowledgedOn) lockAcknowledged("You acknowledged this order on "+dateOnly(DATA.acknowledgedOn)+". Thank you.");
+  }catch(e){ showFatal(e.message||"Failed to load the purchase order."); }
+}
+
+function showFatal(m){ document.getElementById("loading").innerHTML='<div class="msg err" style="display:block">'+m+'</div>'; }
+function lockAcknowledged(m){
+  const b=document.getElementById("banner"); b.className="msg ok"; b.textContent=m; b.style.display="block";
+  const ab=document.getElementById("ackBtn"); ab.disabled=true; ab.textContent="Receipt Acknowledged";
+}
+
+document.getElementById("ackBtn").addEventListener("click",async()=>{
+  const btn=document.getElementById("ackBtn");
+  btn.disabled=true; btn.textContent="Submitting…";
+  try{
+    const res=await fetch(CONFIG.ACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:TOKEN})});
+    if(!res.ok) throw new Error("Could not record your acknowledgment ("+res.status+").");
+    lockAcknowledged("✓ Thank you. Your receipt of this purchase order has been recorded.");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }catch(e){
+    const b=document.getElementById("banner"); b.className="msg err"; b.textContent=e.message; b.style.display="block";
+    btn.disabled=false; btn.textContent="Acknowledge Receipt";
+  }
+});
+
+document.getElementById("pdfBtn").addEventListener("click",()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const M = 40;
+  let y = 46;
+
+  // Masthead
+  doc.setFillColor(0,83,155); doc.rect(0,0,pageW,8,"F");
+  doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(0,83,155);
+  doc.text(BUYER.name, M, y);
+  y += 16;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+  BUYER.address.concat(BUYER.contact).forEach(l=>{ doc.text(l, M, y); y += 11; });
+
+  // Title block, right aligned
+  doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(28,39,51);
+  doc.text("LOCAL PURCHASE ORDER", pageW - M, 52, { align:"right" });
+  doc.setFontSize(10); doc.setFont("helvetica","normal");
+  doc.text("LPO No:  " + (DATA.lpoNumber||""), pageW - M, 70, { align:"right" });
+  doc.text("Date:  " + (dateOnly(DATA.orderDate)||""), pageW - M, 84, { align:"right" });
+
+  y = Math.max(y, 100) + 10;
+  doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 22;
+
+  // Supplier + delivery, side by side
+  const colW = (pageW - M*2 - 20) / 2;
+  const startY = y;
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+  doc.text("SUPPLIER", M, y);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+  y += 15;
+  doc.text(DATA.supplierName || "", M, y);
+  let leftEnd = y;
+
+  let ry = startY;
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+  doc.text("DELIVER TO", M + colW + 20, ry);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+  ry += 15;
+  const addrLines = doc.splitTextToSize(DATA.deliveryAddress || "As advised by FDH Procurement", colW);
+  doc.text(addrLines, M + colW + 20, ry);
+  ry += addrLines.length * 12;
+  if (DATA.deliveryDateRequired) {
+    ry += 4;
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+    doc.text("Required by: " + dateOnly(DATA.deliveryDateRequired), M + colW + 20, ry);
+    ry += 12;
+  }
+
+  y = Math.max(leftEnd, ry) + 24;
+
+  // Items
+  doc.autoTable({
+    startY: y,
+    head: [["#","Item Description","Qty","Unit Price (MWK)","Line Total (MWK)"]],
+    body: LINES.map((ln,i)=>[
+      String(ln.lineNumber || i+1),
+      ln.itemDescription || "",
+      String(Number(ln.quantity)||0),
+      plain(ln.unitPrice),
+      plain(Number(ln.lineTotal) || (Number(ln.quantity)||0)*(Number(ln.unitPrice)||0))
+    ]),
+    theme: "grid",
+    margin: { left: M, right: M },
+    styles: { fontSize: 9, cellPadding: 6, lineColor: [226,232,240], textColor: [28,39,51] },
+    headStyles: { fillColor: [0,83,155], textColor: 255, fontStyle: "bold", fontSize: 8.5 },
+    columnStyles: {
+      0: { cellWidth: 26, halign: "center" },
+      2: { cellWidth: 46, halign: "right" },
+      3: { cellWidth: 96, halign: "right" },
+      4: { cellWidth: 104, halign: "right" }
+    }
+  });
+
+  y = doc.lastAutoTable.finalY + 14;
+
+  // Total
+  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(0,83,155);
+  doc.text("ORDER TOTAL:", pageW - M - 150, y, { align:"right" });
+  doc.setFontSize(13);
+  doc.text(money(DATA.totalAmount), pageW - M, y, { align:"right" });
+  y += 10;
+  doc.setDrawColor(201,162,39); doc.setLineWidth(1.2);
+  doc.line(pageW - M - 260, y, pageW - M, y);
+  doc.setLineWidth(0.2);
+  y += 26;
+
+  // Terms
+  const addBlock = (label, text) => {
+    if (!text) return;
+    if (y > doc.internal.pageSize.getHeight() - 120) { doc.addPage(); y = 60; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+    doc.text(label.toUpperCase(), M, y); y += 13;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(28,39,51);
+    const lines = doc.splitTextToSize(text, pageW - M*2);
+    doc.text(lines, M, y);
+    y += lines.length * 11 + 16;
+  };
+  addBlock("Payment Terms", DATA.paymentTerms);
+  addBlock("Terms and Conditions", DATA.terms);
+
+  // Signature strip
+  if (y > doc.internal.pageSize.getHeight() - 100) { doc.addPage(); y = 60; }
+  y += 10;
+  doc.setDrawColor(160,170,182);
+  doc.line(M, y + 30, M + 180, y + 30);
+  doc.line(pageW - M - 180, y + 30, pageW - M, y + 30);
+  doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(90,100,112);
+  doc.text("Authorised for FDH Financial Holdings", M, y + 42);
+  doc.text("Supplier acknowledgment", pageW - M - 180, y + 42);
+
+  // Footer on every page
+  const pages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    const h = doc.internal.pageSize.getHeight();
+    doc.setFontSize(7.5); doc.setTextColor(140,150,162);
+    doc.text(BUYER.name + " · Operion Procure", M, h - 24);
+    doc.text("Page " + p + " of " + pages, pageW - M, h - 24, { align:"right" });
+  }
+
+  doc.save((DATA.lpoNumber || "purchase-order") + ".pdf");
+});
+
+load();
+</script>
+</body>
+</html>
