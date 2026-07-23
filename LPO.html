@@ -244,30 +244,51 @@ document.getElementById("pdfBtn").addEventListener("click",()=>{
   doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
 
   // QR to the Dataverse record, top-left, so staff can find the order from paper.
-  const QR = 62;
+  // Kept small and tight to the margin: it is a filing aid, not part of the identity.
+  const QR = 46;
+  const QRY = 32;
   let textX = M;
+  let hasQr = false;
   if (DATA.lpoId) {
     const qr = qrDataUrl(CRM_RECORD_URL + DATA.lpoId);
     if (qr) {
-      doc.addImage(qr, "PNG", M, 30, QR, QR);
-      textX = M + QR + 14;
+      doc.addImage(qr, "PNG", M, QRY, QR, QR);
+      doc.setFontSize(6); doc.setTextColor(150,158,168);
+      doc.text("Scan for record", M, QRY + QR + 7);
+      textX = M + QR + 12;
+      hasQr = true;
     }
   }
 
-  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(0,83,155);
+  // The buyer block must never run under the right-aligned title, so it is given a
+  // hard width and the name is scaled down if it would overflow.
+  const titleLeft = pageW - M - 210;
+  const buyerW = titleLeft - textX - 10;
+
+  doc.setFont("helvetica","bold"); doc.setTextColor(0,83,155);
+  let nameSize = 14;
+  doc.setFontSize(nameSize);
+  while (doc.getTextWidth(BUYER.name) > buyerW && nameSize > 9) {
+    nameSize -= 0.5;
+    doc.setFontSize(nameSize);
+  }
   doc.text(BUYER.name, textX, y);
-  y += 16;
-  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
-  BUYER.address.concat(BUYER.contact).forEach(l=>{ doc.text(l, textX, y); y += 11; });
+  y += nameSize + 2;
+
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(90,100,112);
+  BUYER.address.concat(BUYER.contact).forEach(l=>{ doc.text(l, textX, y); y += 10.5; });
 
   // Title block, right aligned
-  doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(28,39,51);
-  doc.text("LOCAL PURCHASE ORDER", pageW - M, 52, { align:"right" });
-  doc.setFontSize(10); doc.setFont("helvetica","normal");
-  doc.text("LPO No:  " + (DATA.lpoNumber||""), pageW - M, 70, { align:"right" });
-  doc.text("Date:  " + (dateOnly(DATA.orderDate)||""), pageW - M, 84, { align:"right" });
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(28,39,51);
+  doc.text("LOCAL PURCHASE ORDER", pageW - M, 46, { align:"right" });
+  doc.setFontSize(9.5); doc.setFont("helvetica","normal"); doc.setTextColor(90,100,112);
+  doc.text("LPO No:", pageW - M - 92, 64, { align:"right" });
+  doc.text("Date:", pageW - M - 92, 78, { align:"right" });
+  doc.setFont("helvetica","bold"); doc.setTextColor(28,39,51);
+  doc.text(DATA.lpoNumber || "", pageW - M, 64, { align:"right" });
+  doc.text(dateOnly(DATA.orderDate) || "-", pageW - M, 78, { align:"right" });
 
-  y = Math.max(y, 30 + QR, 100) + 10;
+  y = Math.max(y, hasQr ? QRY + QR + 14 : 0, 96) + 12;
   doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 22;
 
   // Supplier + delivery, side by side
