@@ -6,6 +6,7 @@
 <title>Local Purchase Order — FDH Financial Holdings</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{
     --fdh-blue:#00539B; --fdh-blue-dark:#003D73; --fdh-gold:#C9A227; --fdh-gold-soft:#E8D9A0;
@@ -60,7 +61,7 @@
 <div class="topbar">
   <div class="brand">
     <img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH Financial Holdings" onerror="this.style.display='none'">
-    <span class="brand-text"><strong>Local Purchase Order</strong>FDH Financial Holdings - Procurement</span>
+    <span class="brand-text"><strong>Local Purchase Order</strong>FDH Financial Holdings — Procurement</span>
   </div>
 </div>
 <div class="hero"><div class="wrap"><h1>Local Purchase Order</h1><p>Please review this order and confirm receipt.</p></div></div>
@@ -72,8 +73,7 @@
     <div id="banner" class="msg"></div>
 
     <div class="actions">
-      <button class="btn btn-ghost" id="pdfBtn">Download PDF</button>
-      <button class="btn" id="ackBtn">Acknowledge Receipt</button>
+      <button class="btn" id="pdfBtn">Download PDF</button>
     </div>
 
     <div class="card">
@@ -127,15 +127,18 @@
     </div>
   </div>
 
+  <div id="qrhost" style="position:absolute;left:-9999px;top:-9999px"></div>
   <footer>© <span id="yr"></span> <strong>FDH Financial Holdings Limited</strong> · Operion Procure</footer>
 </div>
 
 <script>
 // ==== CONFIG — replace with your Power Automate flow endpoints ====
 const CONFIG = {
-  FETCH_URL: "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/18/workflows/2a9c4daafacb4e2f956cf3a90ce17aa8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=__g6Pu-8PUm-gWbcVogewkyAXU65MuxfcGRyepN-tQ4",
-  ACK_URL:   "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/26/workflows/d785ab15ae2649868167aad3f85ed138/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=gOj2y9EgSuwWu1Ws1Jc-5ll2cgEWOvLzFj1pMCyIM7w"
+  FETCH_URL: "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/18/workflows/2a9c4daafacb4e2f956cf3a90ce17aa8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=__g6Pu-8PUm-gWbcVogewkyAXU65MuxfcGRyepN-tQ4"
 };
+// Internal record link encoded into the PDF QR code, so staff can jump straight
+// to the LPO in Dataverse from a printed copy.
+const CRM_RECORD_URL = "https://fdh-holdings.crm.dynamics.com/main.aspx?appid=533a8853-446e-f111-ab0d-6045bd0917be&pagetype=entityrecord&etn=fdho_lpo&id=";
 // Buyer details printed on the PDF.
 const BUYER = {
   name: "FDH Financial Holdings Limited",
@@ -204,29 +207,30 @@ async function load(){
     document.getElementById("loading").style.display="none";
     document.getElementById("content").style.display="block";
 
-    if(DATA.acknowledgedOn) lockAcknowledged("You acknowledged this order on "+dateOnly(DATA.acknowledgedOn)+". Thank you.");
+    // Opening this link is the acknowledgment; the fetch flow stamps it on first view.
+    if(DATA.acknowledgedOn){
+      const b=document.getElementById("banner");
+      b.className="msg ok";
+      b.textContent="Receipt of this order was acknowledged on "+dateOnly(DATA.acknowledgedOn)+". Thank you.";
+      b.style.display="block";
+    }
   }catch(e){ showFatal(e.message||"Failed to load the purchase order."); }
 }
 
 function showFatal(m){ document.getElementById("loading").innerHTML='<div class="msg err" style="display:block">'+m+'</div>'; }
-function lockAcknowledged(m){
-  const b=document.getElementById("banner"); b.className="msg ok"; b.textContent=m; b.style.display="block";
-  const ab=document.getElementById("ackBtn"); ab.disabled=true; ab.textContent="Receipt Acknowledged";
-}
-
-document.getElementById("ackBtn").addEventListener("click",async()=>{
-  const btn=document.getElementById("ackBtn");
-  btn.disabled=true; btn.textContent="Submitting…";
+// Renders the record URL to a data URL via qrcodejs, which draws to a canvas
+// off-screen. Returns null if the library failed to load so the PDF still builds.
+function qrDataUrl(text){
   try{
-    const res=await fetch(CONFIG.ACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:TOKEN})});
-    if(!res.ok) throw new Error("Could not record your acknowledgment ("+res.status+").");
-    lockAcknowledged("✓ Thank you. Your receipt of this purchase order has been recorded.");
-    window.scrollTo({top:0,behavior:"smooth"});
-  }catch(e){
-    const b=document.getElementById("banner"); b.className="msg err"; b.textContent=e.message; b.style.display="block";
-    btn.disabled=false; btn.textContent="Acknowledge Receipt";
-  }
-});
+    const host=document.getElementById("qrhost");
+    host.innerHTML="";
+    new QRCode(host,{ text:text, width:256, height:256, correctLevel:QRCode.CorrectLevel.M });
+    const cvs=host.querySelector("canvas");
+    if(cvs) return cvs.toDataURL("image/png");
+    const img=host.querySelector("img");
+    return img ? img.src : null;
+  }catch(e){ return null; }
+}
 
 document.getElementById("pdfBtn").addEventListener("click",()=>{
   const { jsPDF } = window.jspdf;
@@ -239,11 +243,22 @@ document.getElementById("pdfBtn").addEventListener("click",()=>{
   doc.setFillColor(0,83,155); doc.rect(0,0,pageW,8,"F");
   doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
 
+  // QR to the Dataverse record, top-left, so staff can find the order from paper.
+  const QR = 62;
+  let textX = M;
+  if (DATA.lpoId) {
+    const qr = qrDataUrl(CRM_RECORD_URL + DATA.lpoId);
+    if (qr) {
+      doc.addImage(qr, "PNG", M, 30, QR, QR);
+      textX = M + QR + 14;
+    }
+  }
+
   doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(0,83,155);
-  doc.text(BUYER.name, M, y);
+  doc.text(BUYER.name, textX, y);
   y += 16;
   doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
-  BUYER.address.concat(BUYER.contact).forEach(l=>{ doc.text(l, M, y); y += 11; });
+  BUYER.address.concat(BUYER.contact).forEach(l=>{ doc.text(l, textX, y); y += 11; });
 
   // Title block, right aligned
   doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(28,39,51);
@@ -252,7 +267,7 @@ document.getElementById("pdfBtn").addEventListener("click",()=>{
   doc.text("LPO No:  " + (DATA.lpoNumber||""), pageW - M, 70, { align:"right" });
   doc.text("Date:  " + (dateOnly(DATA.orderDate)||""), pageW - M, 84, { align:"right" });
 
-  y = Math.max(y, 100) + 10;
+  y = Math.max(y, 30 + QR, 100) + 10;
   doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 22;
 
   // Supplier + delivery, side by side
