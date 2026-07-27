@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Invoice — FDH Financial Holdings</title>
+<style>
+  :root{
+    --fdh-blue:#00539B; --fdh-blue-dark:#003D73; --fdh-gold:#C9A227; --fdh-gold-soft:#E8D9A0;
+    --ink:#1c2733; --muted:#6a7683; --line:#e2e8f0; --bg:#f4f7fa; --card:#ffffff;
+    --ok:#1a7f4b; --ok-bg:#e7f6ee; --err:#c0392b; --err-bg:#fdeceb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  .topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 28px;display:flex;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .topbar .brand{display:flex;align-items:center;gap:14px}
+  .topbar img{height:44px;width:auto;display:block}
+  .topbar .brand-text{font-size:13px;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3}
+  .topbar .brand-text strong{display:block;color:var(--fdh-blue);font-size:15px}
+  .hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px}
+  .hero .wrap{max-width:900px;margin:0 auto;padding:0}
+  .hero h1{margin:0 0 4px;font-size:22px;font-weight:600}
+  .hero p{margin:0;opacity:.9;font-size:14px}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 28px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:14px;margin:0 0 16px;color:var(--fdh-blue);font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--fdh-gold);padding-bottom:8px;display:inline-block}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+  .meta .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .meta .v{font-size:15px;font-weight:600;margin-top:3px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  .field .req{color:var(--err)}
+  input[type=text],input[type=number],input[type=date],textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit}
+  input:focus,textarea:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.12)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#f8fafc}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  td input{width:120px;text-align:right}
+  .grand{display:flex;justify-content:flex-end;gap:16px;align-items:baseline;margin-top:16px;padding-top:14px;border-top:2px solid var(--fdh-gold-soft);font-size:15px}
+  .grand .amt{font-size:24px;font-weight:800;color:var(--fdh-blue);font-variant-numeric:tabular-nums}
+  .btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:8px;padding:14px 34px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;width:100%}
+  .btn:hover{background:var(--fdh-blue-dark)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .msg{padding:13px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;display:none;font-weight:500}
+  .msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b7e4cb;display:block}
+  .msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd;display:block}
+  .loading{text-align:center;padding:70px 20px;color:var(--muted)}
+  .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;background:#e8f0f8;color:var(--fdh-blue)}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  footer strong{color:var(--fdh-blue)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH Financial Holdings" onerror="this.style.display='none'">
+    <span class="brand-text"><strong>Supplier Invoice Submission</strong>FDH Financial Holdings — Procurement</span>
+  </div>
+</div>
+<div class="hero"><div class="wrap"><h1>Submit Your Invoice</h1><p>Invoice for the goods received and accepted against this order.</p></div></div>
+
+<div class="wrap">
+  <div id="loading" class="loading">Loading the receipt details…</div>
+
+  <div id="content" style="display:none">
+    <div id="banner" class="msg"></div>
+
+    <div class="card">
+      <h2>Receipt Details</h2>
+      <div class="meta">
+        <div><div class="k">GRN Number</div><div class="v" id="m-grn">—</div></div>
+        <div><div class="k">LPO Number</div><div class="v" id="m-lpo">—</div></div>
+        <div><div class="k">Your Company</div><div class="v" id="m-supplier">—</div></div>
+        <div><div class="k">Date Received</div><div class="v"><span id="m-received" class="badge">—</span></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Your Invoice</h2>
+      <div class="grid2">
+        <div class="field">
+          <label>Your Invoice Number <span class="req">*</span></label>
+          <input type="text" id="invno" placeholder="e.g. INV-2026-0451" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Invoice Date <span class="req">*</span></label>
+          <input type="date" id="invdate">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Invoice Lines</h2>
+      <p class="hint" style="margin-top:0">Quantities shown are what FDH accepted on receipt. Enter your unit price for each line. Bill only for accepted quantities.</p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:32px">#</th>
+            <th>Item</th>
+            <th class="num" style="width:110px">Accepted Qty</th>
+            <th class="num" style="width:110px">Qty Billed</th>
+            <th class="num" style="width:140px">Unit Price (MWK)</th>
+            <th class="num" style="width:150px">Line Total</th>
+          </tr>
+        </thead>
+        <tbody id="lines-body"></tbody>
+      </table>
+      <div class="grand">Invoice Total:&nbsp; <span class="amt" id="grandtotal">MWK 0.00</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Supporting Notes</h2>
+      <div class="field">
+        <textarea id="notes" rows="3" placeholder="Any notes for the FDH procurement team (optional)"></textarea>
+      </div>
+    </div>
+
+    <button class="btn" id="submitBtn">Submit Invoice</button>
+    <p class="hint" style="text-align:center;margin-top:12px">Your invoice will be matched against the order and receipt. Any discrepancy will be returned to you with an explanation.</p>
+  </div>
+
+  <footer>© <span id="yr"></span> <strong>FDH Financial Holdings Limited</strong> · Operion Procure</footer>
+</div>
+
+<script>
+// ==== CONFIG — replace with your Power Automate flow endpoints ====
+const CONFIG = {
+  FETCH_URL:  "REPLACE-WITH-INVOICE-FETCH-FLOW-URL",
+  SUBMIT_URL: "REPLACE-WITH-INVOICE-SUBMIT-FLOW-URL"
+};
+// =================================================================
+document.getElementById("yr").textContent = new Date().getFullYear();
+const params = new URLSearchParams(location.search);
+const TOKEN = params.get("token");
+let DATA = null, LINES = [];
+
+function money(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function dateOnly(v){ if(!v) return ""; const d=new Date(v); return isNaN(d)?"":d.toLocaleDateString(); }
+
+function recalc(){
+  let grand=0;
+  LINES.forEach((ln,i)=>{
+    const qty=Number(document.getElementById("q"+i).value)||0;
+    const price=Number(document.getElementById("p"+i).value)||0;
+    const total=qty*price;
+    grand+=total;
+    document.getElementById("lt"+i).textContent=money(total);
+  });
+  document.getElementById("grandtotal").textContent=money(grand);
+}
+
+function renderLines(){
+  const body=document.getElementById("lines-body"); body.innerHTML="";
+  LINES.forEach((ln,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML='<td>'+(i+1)+'</td>'+
+      '<td>'+(ln.itemDescription||"")+'</td>'+
+      '<td class="num">'+(Number(ln.acceptedQty)||0)+'</td>'+
+      '<td class="num"><input type="number" id="q'+i+'" min="0" step="any" value="'+(Number(ln.acceptedQty)||0)+'"></td>'+
+      '<td class="num"><input type="number" id="p'+i+'" min="0" step="any" placeholder="0.00"></td>'+
+      '<td class="num" id="lt'+i+'" style="font-weight:700;color:var(--fdh-blue)">MWK 0.00</td>';
+    body.appendChild(tr);
+  });
+  LINES.forEach((ln,i)=>{
+    document.getElementById("q"+i).addEventListener("input",recalc);
+    document.getElementById("p"+i).addEventListener("input",recalc);
+  });
+  recalc();
+}
+
+async function load(){
+  if(!TOKEN){ showFatal("This link is missing its reference. Please use the exact link sent to you by FDH Procurement."); return; }
+  try{
+    const sep=CONFIG.FETCH_URL.indexOf("?")>=0?"&":"?";
+    const res=await fetch(CONFIG.FETCH_URL+sep+"token="+encodeURIComponent(TOKEN));
+    if(!res.ok) throw new Error("Could not load the receipt ("+res.status+").");
+    DATA=await res.json();
+    if(DATA.error){ showFatal(DATA.error); return; }
+
+    document.getElementById("m-grn").textContent=DATA.grnNumber||"—";
+    document.getElementById("m-lpo").textContent=DATA.lpoNumber||"—";
+    document.getElementById("m-supplier").textContent=DATA.supplierName||"—";
+    document.getElementById("m-received").textContent=dateOnly(DATA.receivedDate)||"—";
+
+    LINES=DATA.lines||[]; renderLines();
+    document.getElementById("loading").style.display="none";
+    document.getElementById("content").style.display="block";
+
+    if(DATA.alreadySubmitted) lock("An invoice has already been submitted for this receipt. Thank you.");
+  }catch(e){ showFatal(e.message||"Failed to load the receipt."); }
+}
+
+function showFatal(m){ document.getElementById("loading").innerHTML='<div class="msg err" style="display:block">'+m+'</div>'; }
+function lock(m){
+  const b=document.getElementById("banner"); b.className="msg ok"; b.textContent=m; b.style.display="block";
+  const btn=document.getElementById("submitBtn"); btn.disabled=true; btn.style.display="none";
+  document.querySelectorAll("input,textarea").forEach(el=>el.disabled=true);
+}
+
+document.getElementById("submitBtn").addEventListener("click",async()=>{
+  const invno=document.getElementById("invno").value.trim();
+  const invdate=document.getElementById("invdate").value;
+  const banner=document.getElementById("banner");
+
+  if(!invno){ banner.className="msg err"; banner.textContent="Please enter your invoice number."; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(!invdate){ banner.className="msg err"; banner.textContent="Please enter your invoice date."; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
+
+  const lines=LINES.map((ln,i)=>({
+    grnLineId: ln.grnLineId,
+    itemDescription: ln.itemDescription,
+    quantityBilled: Number(document.getElementById("q"+i).value)||0,
+    unitPrice: Number(document.getElementById("p"+i).value)||0
+  }));
+
+  if(lines.some(l=>l.unitPrice<=0)){ banner.className="msg err"; banner.textContent="Please enter a unit price for every line."; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
+
+  const total=lines.reduce((s,l)=>s+l.quantityBilled*l.unitPrice,0);
+  const btn=document.getElementById("submitBtn");
+  btn.disabled=true; btn.textContent="Submitting…";
+
+  try{
+    const res=await fetch(CONFIG.SUBMIT_URL,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ token:TOKEN, invoiceNumber:invno, invoiceDate:invdate, invoiceAmount:total, notes:document.getElementById("notes").value, lines })});
+    if(!res.ok) throw new Error("Submission failed ("+res.status+").");
+    lock("✓ Thank you. Your invoice has been submitted and will be matched against the order and receipt.");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }catch(e){
+    banner.className="msg err"; banner.textContent=e.message; banner.style.display="block";
+    btn.disabled=false; btn.textContent="Submit Invoice";
+  }
+});
+
+load();
+</script>
+</body>
+</html>
