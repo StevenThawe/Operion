@@ -30,14 +30,14 @@
   .field{margin-bottom:16px}
   .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
   .field .req{color:var(--err)}
-  input[type=text],input[type=number],input[type=date],textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit}
+  input[type=text],input[type=number],input[type=date],input[type=file],textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit}
   input:focus,textarea:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.12)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   table{width:100%;border-collapse:collapse}
   th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
   th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#f8fafc}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-  td input{width:120px;text-align:right}
+  .locked{color:var(--muted);font-variant-numeric:tabular-nums}
   .grand{display:flex;justify-content:flex-end;gap:16px;align-items:baseline;margin-top:16px;padding-top:14px;border-top:2px solid var(--fdh-gold-soft);font-size:15px}
   .grand .amt{font-size:24px;font-weight:800;color:var(--fdh-blue);font-variant-numeric:tabular-nums}
   .btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:8px;padding:14px 34px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;width:100%}
@@ -49,6 +49,7 @@
   .loading{text-align:center;padding:70px 20px;color:var(--muted)}
   .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;background:#e8f0f8;color:var(--fdh-blue)}
   .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .filename{font-size:13px;color:var(--fdh-blue);font-weight:600;margin-top:6px}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
   footer strong{color:var(--fdh-blue)}
 </style>
@@ -90,20 +91,25 @@
           <input type="date" id="invdate">
         </div>
       </div>
+      <div class="field">
+        <label>Attach Your Invoice Document <span class="req">*</span></label>
+        <input type="file" id="attachment" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+        <div class="hint">PDF or image of your signed invoice. Required.</div>
+        <div class="filename" id="filename"></div>
+      </div>
     </div>
 
     <div class="card">
       <h2>Invoice Lines</h2>
-      <p class="hint" style="margin-top:0">Quantities shown are what FDH accepted on receipt. Enter your unit price for each line. Bill only for accepted quantities.</p>
+      <p class="hint" style="margin-top:0">These are the quantities FDH accepted and the unit prices agreed at award. They are fixed and shown for your confirmation.</p>
       <table>
         <thead>
           <tr>
             <th style="width:32px">#</th>
             <th>Item</th>
-            <th class="num" style="width:110px">Accepted Qty</th>
-            <th class="num" style="width:110px">Qty Billed</th>
-            <th class="num" style="width:140px">Unit Price (MWK)</th>
-            <th class="num" style="width:150px">Line Total</th>
+            <th class="num" style="width:120px">Accepted Qty</th>
+            <th class="num" style="width:150px">Unit Price (MWK)</th>
+            <th class="num" style="width:160px">Line Total</th>
           </tr>
         </thead>
         <tbody id="lines-body"></tbody>
@@ -135,40 +141,31 @@ const CONFIG = {
 document.getElementById("yr").textContent = new Date().getFullYear();
 const params = new URLSearchParams(location.search);
 const TOKEN = params.get("token");
-let DATA = null, LINES = [];
+let DATA = null, LINES = [], ATTACHMENT = null;
 
 function money(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function plain(n){ return (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function dateOnly(v){ if(!v) return ""; const d=new Date(v); return isNaN(d)?"":d.toLocaleDateString(); }
 
-function recalc(){
-  let grand=0;
-  LINES.forEach((ln,i)=>{
-    const qty=Number(document.getElementById("q"+i).value)||0;
-    const price=Number(document.getElementById("p"+i).value)||0;
-    const total=qty*price;
-    grand+=total;
-    document.getElementById("lt"+i).textContent=money(total);
-  });
-  document.getElementById("grandtotal").textContent=money(grand);
-}
-
+// Lines are fixed: accepted quantity at the awarded price. Nothing here is editable,
+// so the total is computed once from the data, not from inputs.
 function renderLines(){
   const body=document.getElementById("lines-body"); body.innerHTML="";
+  let grand=0;
   LINES.forEach((ln,i)=>{
+    const qty=Number(ln.acceptedQty)||0;
+    const price=Number(ln.awardedPrice)||0;
+    const total=qty*price;
+    grand+=total;
     const tr=document.createElement("tr");
     tr.innerHTML='<td>'+(i+1)+'</td>'+
       '<td>'+(ln.itemDescription||"")+'</td>'+
-      '<td class="num">'+(Number(ln.acceptedQty)||0)+'</td>'+
-      '<td class="num"><input type="number" id="q'+i+'" min="0" step="any" value="'+(Number(ln.acceptedQty)||0)+'"></td>'+
-      '<td class="num"><input type="number" id="p'+i+'" min="0" step="any" placeholder="0.00"></td>'+
-      '<td class="num" id="lt'+i+'" style="font-weight:700;color:var(--fdh-blue)">MWK 0.00</td>';
+      '<td class="num locked">'+qty+'</td>'+
+      '<td class="num locked">'+plain(price)+'</td>'+
+      '<td class="num" style="font-weight:700;color:var(--fdh-blue)">'+plain(total)+'</td>';
     body.appendChild(tr);
   });
-  LINES.forEach((ln,i)=>{
-    document.getElementById("q"+i).addEventListener("input",recalc);
-    document.getElementById("p"+i).addEventListener("input",recalc);
-  });
-  recalc();
+  document.getElementById("grandtotal").textContent=money(grand);
 }
 
 async function load(){
@@ -200,30 +197,53 @@ function lock(m){
   document.querySelectorAll("input,textarea").forEach(el=>el.disabled=true);
 }
 
+// Read the chosen file as base64 for transport through the submit flow.
+document.getElementById("attachment").addEventListener("change",function(){
+  var file=this.files && this.files[0];
+  if(!file){ ATTACHMENT=null; document.getElementById("filename").textContent=""; return; }
+  if(file.size > 8*1024*1024){
+    document.getElementById("filename").textContent="";
+    var b=document.getElementById("banner"); b.className="msg err"; b.textContent="That file is larger than 8 MB. Please attach a smaller file."; b.style.display="block";
+    this.value=""; ATTACHMENT=null; return;
+  }
+  var reader=new FileReader();
+  reader.onload=function(){
+    ATTACHMENT={ name:file.name, contentBase64:String(reader.result).split(",")[1] };
+    document.getElementById("filename").textContent="Attached: "+file.name;
+  };
+  reader.readAsDataURL(file);
+});
+
 document.getElementById("submitBtn").addEventListener("click",async()=>{
   const invno=document.getElementById("invno").value.trim();
   const invdate=document.getElementById("invdate").value;
   const banner=document.getElementById("banner");
 
-  if(!invno){ banner.className="msg err"; banner.textContent="Please enter your invoice number."; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
-  if(!invdate){ banner.className="msg err"; banner.textContent="Please enter your invoice date."; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
+  function fail(msg){ banner.className="msg err"; banner.textContent=msg; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); }
 
-  const lines=LINES.map((ln,i)=>({
+  if(!invno){ fail("Please enter your invoice number."); return; }
+  if(!invdate){ fail("Please enter your invoice date."); return; }
+  if(!ATTACHMENT){ fail("Please attach your invoice document — it is required."); return; }
+
+  // Lines are the fixed accepted-qty / awarded-price figures; the supplier confirms, not edits.
+  const lines=LINES.map(ln=>({
     grnLineId: ln.grnLineId,
     itemDescription: ln.itemDescription,
-    quantityBilled: Number(document.getElementById("q"+i).value)||0,
-    unitPrice: Number(document.getElementById("p"+i).value)||0
+    quantityBilled: Number(ln.acceptedQty)||0,
+    unitPrice: Number(ln.awardedPrice)||0
   }));
-
-  if(lines.some(l=>l.unitPrice<=0)){ banner.className="msg err"; banner.textContent="Please enter a unit price for every line."; banner.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
-
   const total=lines.reduce((s,l)=>s+l.quantityBilled*l.unitPrice,0);
+
   const btn=document.getElementById("submitBtn");
   btn.disabled=true; btn.textContent="Submitting…";
 
   try{
     const res=await fetch(CONFIG.SUBMIT_URL,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ token:TOKEN, invoiceNumber:invno, invoiceDate:invdate, invoiceAmount:total, notes:document.getElementById("notes").value, lines })});
+      body:JSON.stringify({
+        token:TOKEN, invoiceNumber:invno, invoiceDate:invdate, invoiceAmount:total,
+        notes:document.getElementById("notes").value, lines:lines,
+        attachmentName: ATTACHMENT.name, attachmentBase64: ATTACHMENT.contentBase64
+      })});
     if(!res.ok) throw new Error("Submission failed ("+res.status+").");
     lock("✓ Thank you. Your invoice has been submitted and will be matched against the order and receipt.");
     window.scrollTo({top:0,behavior:"smooth"});
