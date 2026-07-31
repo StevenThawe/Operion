@@ -186,7 +186,16 @@ async function load(){
     document.getElementById("loading").style.display="none";
     document.getElementById("content").style.display="block";
 
-    if(DATA.alreadySubmitted) lock("An invoice has already been submitted for this receipt. Thank you.");
+    if(DATA.alreadySubmitted){
+      // Show back what was actually submitted, rather than a lock message over blank
+      // fields - a supplier refreshing the page should see their own submission, not
+      // wonder if it vanished.
+      if(DATA.submittedInvoiceNumber) document.getElementById("invno").value = DATA.submittedInvoiceNumber;
+      if(DATA.submittedInvoiceDate) document.getElementById("invdate").value = DATA.submittedInvoiceDate.substring(0,10);
+      if(DATA.submittedNotes) document.getElementById("notes").value = DATA.submittedNotes;
+      document.getElementById("filename").textContent = "Document attached with your submission.";
+      lock("An invoice has already been submitted for this receipt. Thank you.");
+    }
   }catch(e){ showFatal(e.message||"Failed to load the receipt."); }
 }
 
