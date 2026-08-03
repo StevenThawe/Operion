@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Receipt — FDH Financial Holdings</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --fdh-blue:#00539B; --fdh-blue-dark:#003D73; --fdh-gold:#C9A227; --fdh-gold-soft:#E8D9A0;
+    --ink:#1c2733; --muted:#6a7683; --line:#e2e8f0; --bg:#f4f7fa; --card:#ffffff;
+    --ok:#1a7f4b; --ok-bg:#e7f6ee; --err:#c0392b; --err-bg:#fdeceb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  .topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 28px;display:flex;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .topbar .brand{display:flex;align-items:center;gap:14px}
+  .topbar img{height:44px;width:auto;display:block}
+  .topbar .brand-text{font-size:13px;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3}
+  .topbar .brand-text strong{display:block;color:var(--fdh-blue);font-size:15px}
+  .hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px}
+  .hero .wrap{max-width:760px;margin:0 auto;padding:0}
+  .hero h1{margin:0 0 4px;font-size:22px;font-weight:600}
+  .hero p{margin:0;opacity:.9;font-size:14px}
+  .wrap{max-width:760px;margin:0 auto;padding:24px 28px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:14px;margin:0 0 16px;color:var(--fdh-blue);font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--fdh-gold);padding-bottom:8px;display:inline-block}
+  .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+  .meta .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .meta .v{font-size:16px;font-weight:700;margin-top:3px;color:var(--ink)}
+  .amt{font-size:30px;font-weight:800;color:var(--ok);text-align:center;margin:6px 0}
+  .stamp{text-align:center;color:var(--ok);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:var(--ok-bg);border:1px solid #b7e4cb;border-radius:20px;display:inline-block;padding:6px 18px;margin:0 auto 14px;display:block;width:fit-content}
+  .btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%}
+  .btn:hover{background:var(--fdh-blue-dark)}
+  .loading{text-align:center;padding:70px 20px;color:var(--muted)}
+  .msg{padding:13px 16px;border-radius:8px;font-size:14px;margin-bottom:16px;display:none;font-weight:500}
+  .msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd;display:block}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  footer strong{color:var(--fdh-blue)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH Financial Holdings" onerror="this.style.display='none'">
+    <span class="brand-text"><strong>Payment Receipt</strong>FDH Financial Holdings — Settlement</span>
+  </div>
+</div>
+<div class="hero"><div class="wrap"><h1>Payment Confirmation</h1><p>Your invoice has been paid. Details below.</p></div></div>
+
+<div class="wrap">
+  <div id="loading" class="loading">Loading receipt details…</div>
+
+  <div id="content" style="display:none">
+    <div id="banner" class="msg"></div>
+
+    <div class="card">
+      <span class="stamp">✓ Paid in Full</span>
+      <div class="amt" id="m-amount">MWK 0.00</div>
+      <div class="meta" style="margin-top:18px">
+        <div><div class="k">Invoice Reference</div><div class="v" id="m-invref">—</div></div>
+        <div><div class="k">Your Invoice Number</div><div class="v" id="m-supinv">—</div></div>
+        <div><div class="k">Payment Date</div><div class="v" id="m-paydate">—</div></div>
+        <div><div class="k">Payment Reference</div><div class="v" id="m-payref">—</div></div>
+        <div><div class="k">Payment Method</div><div class="v" id="m-method">—</div></div>
+        <div><div class="k">Supplier</div><div class="v" id="m-supplier">—</div></div>
+      </div>
+    </div>
+
+    <button class="btn" id="pdfBtn">Download Receipt (PDF)</button>
+  </div>
+
+  <footer>© <span id="yr"></span> <strong>FDH Financial Holdings Limited</strong> · Operion Procure</footer>
+</div>
+
+<script>
+// ==== CONFIG — paste your Receipt Fetch flow URL ====
+const CONFIG = { FETCH_URL: "REPLACE-WITH-RECEIPT-FETCH-FLOW-URL" };
+const BUYER = {
+  name: "FDH Financial Holdings Limited",
+  address: ["First Floor, Umoyo House", "Victoria Avenue", "P.O. Box 512", "Blantyre, Malawi"],
+  contact: ["Tel: (265) 111 820 219/397", "Fax: (265) 111 823 044"]
+};
+// =====================================================
+document.getElementById("yr").textContent = new Date().getFullYear();
+const params = new URLSearchParams(location.search);
+const TOKEN = params.get("token");
+let DATA = null;
+
+function money(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function dateOnly(v){ if(!v) return ""; const d=new Date(v); return isNaN(d)?"":d.toLocaleDateString(); }
+
+async function load(){
+  if(!TOKEN){ showFatal("This link is missing its reference. Please use the exact link sent to you by FDH Procurement."); return; }
+  try{
+    const sep=CONFIG.FETCH_URL.indexOf("?")>=0?"&":"?";
+    const res=await fetch(CONFIG.FETCH_URL+sep+"token="+encodeURIComponent(TOKEN));
+    if(!res.ok) throw new Error("Could not load the receipt ("+res.status+").");
+    DATA=await res.json();
+    if(DATA.error){ showFatal(DATA.error); return; }
+
+    document.getElementById("m-amount").textContent=money(DATA.amountApplied);
+    document.getElementById("m-invref").textContent=DATA.invoiceReference||"—";
+    document.getElementById("m-supinv").textContent=DATA.supplierInvoiceNumber||"—";
+    document.getElementById("m-paydate").textContent=dateOnly(DATA.paymentDate)||"—";
+    document.getElementById("m-payref").textContent=DATA.paymentReference||"—";
+    document.getElementById("m-method").textContent=DATA.paymentMethod||"—";
+    document.getElementById("m-supplier").textContent=DATA.supplierName||"—";
+
+    document.getElementById("loading").style.display="none";
+    document.getElementById("content").style.display="block";
+  }catch(e){ showFatal(e.message||"Failed to load the receipt."); }
+}
+
+function showFatal(m){ document.getElementById("loading").innerHTML='<div class="msg err" style="display:block">'+m+'</div>'; }
+
+document.getElementById("pdfBtn").addEventListener("click",()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const M = 48;
+  let y = 50;
+
+  doc.setFillColor(0,83,155); doc.rect(0,0,pageW,8,"F");
+  doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(0,83,155);
+  doc.text(BUYER.name, M, y); y += 16;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+  BUYER.address.concat(BUYER.contact).forEach(l=>{ doc.text(l, M, y); y += 11; });
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(28,39,51);
+  doc.text("PAYMENT RECEIPT", pageW - M, 52, { align:"right" });
+  doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.setTextColor(90,100,112);
+  doc.text("Issued: " + new Date().toLocaleDateString(), pageW - M, 70, { align:"right" });
+
+  y = Math.max(y, 100) + 16;
+  doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 30;
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(26); doc.setTextColor(26,127,75);
+  doc.text("PAID IN FULL", pageW/2, y, { align:"center" });
+  y += 34;
+  doc.setFontSize(22); doc.setTextColor(0,83,155);
+  doc.text(String(document.getElementById("m-amount").textContent), pageW/2, y, { align:"center" });
+  y += 44;
+
+  const rows = [
+    ["Invoice Reference", document.getElementById("m-invref").textContent],
+    ["Your Invoice Number", document.getElementById("m-supinv").textContent],
+    ["Supplier", document.getElementById("m-supplier").textContent],
+    ["Payment Date", document.getElementById("m-paydate").textContent],
+    ["Payment Reference", document.getElementById("m-payref").textContent],
+    ["Payment Method", document.getElementById("m-method").textContent]
+  ];
+  doc.setFontSize(10);
+  rows.forEach(([label, value])=>{
+    doc.setFont("helvetica","bold"); doc.setTextColor(90,100,112);
+    doc.text(label, M, y);
+    doc.setFont("helvetica","normal"); doc.setTextColor(28,39,51);
+    doc.text(String(value||"—"), pageW - M, y, { align:"right" });
+    y += 20;
+    doc.setDrawColor(240,243,247); doc.line(M, y-8, pageW-M, y-8);
+  });
+
+  y += 20;
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(140,150,162);
+  doc.text("This receipt confirms payment has been made in full for the invoice referenced above.", M, y);
+  y += 12;
+  doc.text("Please retain this document for your records.", M, y);
+
+  const h = doc.internal.pageSize.getHeight();
+  doc.setFontSize(7.5); doc.setTextColor(140,150,162);
+  doc.text(BUYER.name + " · Operion Procure", M, h - 24);
+
+  doc.save((document.getElementById("m-invref").textContent || "payment-receipt") + "-receipt.pdf");
+});
+
+load();
+</script>
+</body>
+</html>
