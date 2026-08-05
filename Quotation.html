@@ -133,7 +133,6 @@
     </div>
     <div class="card">
       <h2>Additional Information</h2>
-      <div class="field"><label>Delivery Lead Time (days)</label><input type="number" id="leadtime" min="0" placeholder="e.g. 14"></div>
       <div class="field"><label>Quote Validity (days)</label><input type="number" id="validity" min="0" placeholder="e.g. 30"></div>
       <div class="field"><label>Notes / Comments</label><textarea id="notes" rows="3" placeholder="Any conditions, remarks, or clarifications"></textarea></div>
       <div class="field">
@@ -206,24 +205,31 @@ async function load(){
     LINES=data.lines||[]; renderLines();
     document.getElementById("loading").style.display="none";
     document.getElementById("content").style.display="block";
-    if(data.alreadySubmitted){
-      // Show what they submitted (read-only), instead of an empty locked form.
-      if(Array.isArray(data.submittedLines)){
-        var byLine={};
-        data.submittedLines.forEach(function(sl){ if(sl && sl.rfqLineId) byLine[String(sl.rfqLineId).toLowerCase()]=sl; });
-        LINES.forEach(function(ln,i){
-          var m=byLine[String(ln.rfqLineId||"").toLowerCase()];
-          if(m && m.unitPrice!=null){ var el=document.getElementById("p"+i); if(el) el.value=m.unitPrice; }
-        });
-        recalc();
+    // Everything below is best-effort: a missing field from the flow must never
+    // blank the whole page. Each optional piece is wrapped so a gap in the data
+    // just means that one detail is absent, not that nothing renders at all.
+    try{
+      if(data.alreadySubmitted){
+        if(Array.isArray(data.submittedLines) && data.submittedLines.length){
+          var byLine={};
+          data.submittedLines.forEach(function(sl){ if(sl && sl.rfqLineId) byLine[String(sl.rfqLineId).toLowerCase()]=sl; });
+          LINES.forEach(function(ln,i){
+            var m=byLine[String(ln.rfqLineId||"").toLowerCase()];
+            if(m && m.unitPrice!=null){ var el=document.getElementById("p"+i); if(el) el.value=m.unitPrice; }
+          });
+          recalc();
+        }
+        if(data.submittedValidity!=null) document.getElementById("validity").value=data.submittedValidity;
+        if(data.submittedNotes) document.getElementById("notes").value=data.submittedNotes;
+        var dz=document.getElementById("dropzone"); if(dz) dz.style.display="none";
+        lockForm("You have already submitted a quotation for this RFQ. Your submitted pricing is shown below for your records.","ok");
       }
-      if(data.submittedLeadTime!=null) document.getElementById("leadtime").value=data.submittedLeadTime;
-      if(data.submittedValidity!=null) document.getElementById("validity").value=data.submittedValidity;
-      if(data.submittedNotes) document.getElementById("notes").value=data.submittedNotes;
-      document.getElementById("dropzone").style.display="none";
-      lockForm("You have already submitted a quotation for this RFQ. Your submitted pricing is shown below for your records.","ok");
+      else if(DEADLINE_PAST){
+        lockForm("The submission deadline has passed. Late quotations cannot be accepted.");
+      }
+    }catch(lockErr){
+      console.warn("Could not fully restore the submitted view:", lockErr.message);
     }
-    else if(DEADLINE_PAST) lockForm("The submission deadline has passed. Late quotations cannot be accepted.");
   }catch(e){ showFatal(e.message||"Failed to load the RFQ."); }
 }
 function showFatal(m){ document.getElementById("loading").innerHTML='<div class="msg err" style="display:block">'+m+'</div>'; }
@@ -260,7 +266,6 @@ document.getElementById("submitBtn").addEventListener("click",async()=>{
     const fileBase64 = await fileToBase64(attachedFile);
     const payload={
       token:TOKEN,
-      leadTime:parseInt(document.getElementById("leadtime").value)||null,
       validity:parseInt(document.getElementById("validity").value)||null,
       notes:document.getElementById("notes").value||"",
       lines:lineData,
