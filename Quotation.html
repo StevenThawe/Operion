@@ -14,40 +14,48 @@
     --ok:#1a7f4b; --ok-bg:#e7f6ee; --err:#c0392b; --err-bg:#fdeceb;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;overflow-x:hidden}
   /* Header */
-  .topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.05)}
-  .topbar .brand{display:flex;align-items:center;gap:14px}
-  .topbar img{height:44px;width:auto;display:block}
-  .topbar .brand-text{font-size:13px;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3}
+  .topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.05);flex-wrap:wrap;gap:8px}
+  .topbar .brand{display:flex;align-items:center;gap:14px;min-width:0}
+  .topbar img{height:40px;width:auto;display:block;flex:0 0 auto}
+  .topbar .brand-text{font-size:13px;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3;min-width:0}
   .topbar .brand-text strong{display:block;color:var(--fdh-blue);font-size:15px}
-  .hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px}
-  .hero .wrap{max-width:960px;margin:0 auto}
-  .hero h1{margin:0 0 4px;font-size:22px;font-weight:600}
-  .hero p{margin:0;opacity:.9;font-size:14px}
-  .wrap{max-width:960px;margin:0 auto;padding:24px 28px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .card h2{font-size:14px;margin:0 0 16px;color:var(--fdh-blue);font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--fdh-gold);padding-bottom:8px;display:inline-block}
-  .rfq-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
-  .rfq-meta .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
-  .rfq-meta .v{font-size:15px;font-weight:600;margin-top:3px;color:var(--ink)}
+  .hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:22px 16px}
+  .hero .wrap{max-width:960px;margin:0 auto;padding:0}
+  .hero h1{margin:0 0 4px;font-size:20px;font-weight:600}
+  .hero p{margin:0;opacity:.9;font-size:13.5px}
+  .wrap{max-width:960px;margin:0 auto;padding:20px 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);overflow:hidden}
+  .card h2{font-size:13.5px;margin:0 0 16px;color:var(--fdh-blue);font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--fdh-gold);padding-bottom:8px;display:inline-block}
+  .rfq-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+  .rfq-meta .k{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .rfq-meta .v{font-size:14.5px;font-weight:600;margin-top:3px;color:var(--ink);word-break:break-word}
+
+  /* Any long unbroken text (requirements, terms, descriptions) must wrap, never
+     force horizontal scroll on a phone. */
+  .wraptext{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+
   table{width:100%;border-collapse:collapse}
-  th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
   th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#f8fafc}
   td.num,th.num{text-align:right}
-  input[type=number],input[type=text],textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff}
+  td .desc{overflow-wrap:anywhere;word-break:break-word}
+  input[type=number],input[type=text],textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:16px;font-family:inherit;background:#fff}
   input:focus,textarea:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.12)}
-  .price-in{max-width:160px}
-  .linetotal{font-variant-numeric:tabular-nums;font-weight:700;color:var(--fdh-blue)}
-  .grand{display:flex;justify-content:flex-end;gap:16px;align-items:baseline;margin-top:16px;padding-top:14px;border-top:2px solid var(--fdh-gold-soft);font-size:15px}
-  .grand .amt{font-size:24px;font-weight:800;color:var(--fdh-blue);font-variant-numeric:tabular-nums}
+  .price-in{max-width:140px;width:100%}
+  .linetotal{font-variant-numeric:tabular-nums;font-weight:700;color:var(--fdh-blue);white-space:nowrap}
+  .grand{display:flex;justify-content:flex-end;gap:16px;align-items:baseline;margin-top:16px;padding-top:14px;border-top:2px solid var(--fdh-gold-soft);font-size:15px;flex-wrap:wrap}
+  .grand .amt{font-size:22px;font-weight:800;color:var(--fdh-blue);font-variant-numeric:tabular-nums}
   .field{margin-bottom:16px}
   .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--ink)}
-  .hint{font-size:12px;color:var(--muted);margin-top:4px}
-  .file-drop{border:1.5px dashed var(--fdh-blue);border-radius:9px;padding:18px;text-align:center;background:#f5f9fd;cursor:pointer;color:var(--fdh-blue);font-weight:500}
+  .field label .req{color:var(--err)}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+  .file-drop{border:1.5px dashed var(--fdh-blue);border-radius:9px;padding:16px;text-align:center;background:#f5f9fd;cursor:pointer;color:var(--fdh-blue);font-weight:500;font-size:14px}
   .file-drop:hover{background:#eef5fc}
   .file-list{margin-top:10px;font-size:13px}
-  .file-list div{padding:4px 0;color:var(--muted)}
+  .file-list div{padding:4px 0;color:var(--muted);overflow-wrap:anywhere}
   .btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:8px;padding:14px 24px;font-size:15px;font-weight:700;cursor:pointer;width:100%;transition:background .15s}
   .btn:hover{background:var(--fdh-blue-dark)}
   .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -57,8 +65,22 @@
   .loading{text-align:center;padding:70px 20px;color:var(--muted)}
   .badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;background:#e8f0f8;color:var(--fdh-blue)}
   .badge.past{background:var(--err-bg);color:var(--err)}
-  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  footer{text-align:center;color:var(--muted);font-size:11.5px;padding:22px 16px}
   footer strong{color:var(--fdh-blue)}
+
+  /* ---- Mobile: item pricing becomes stacked cards instead of a cramped table ---- */
+  @media (max-width:640px){
+    .wrap{padding:16px 12px}
+    .card{padding:14px}
+    .hero h1{font-size:18px}
+    table.stack-mobile thead{display:none}
+    table.stack-mobile, table.stack-mobile tbody, table.stack-mobile tr, table.stack-mobile td{display:block;width:100%}
+    table.stack-mobile tr{border:1px solid var(--line);border-radius:8px;margin-bottom:12px;padding:10px 12px;background:#fbfcfe}
+    table.stack-mobile td{border-bottom:none;padding:6px 0;text-align:left}
+    table.stack-mobile td.num{text-align:left}
+    table.stack-mobile td[data-label]::before{content:attr(data-label);display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-bottom:2px}
+    .price-in{max-width:100%}
+  }
 </style>
 </head>
 <body>
@@ -69,13 +91,10 @@
   </div>
 </div>
 <div class="hero"><div class="wrap"><h1>Request for Quotation</h1><p>Please review the items below and submit your best pricing before the closing deadline.</p></div></div>
-
 <div class="wrap">
   <div id="loading" class="loading">Loading your Request for Quotation…</div>
-
   <div id="content" style="display:none">
     <div id="banner" class="msg"></div>
-
     <div class="card">
       <h2>RFQ Details</h2>
       <div class="rfq-meta">
@@ -85,22 +104,20 @@
         <div><div class="k">Submission Deadline</div><div class="v"><span id="m-deadline" class="badge">—</span></div></div>
       </div>
     </div>
-
     <div class="card" id="terms-card" style="display:none">
       <h2>Terms &amp; Requirements</h2>
       <div id="terms-block" style="margin-bottom:18px">
         <div class="k" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px">Terms and Conditions</div>
-        <div id="m-terms" style="font-size:14px;white-space:pre-wrap;color:var(--ink)"></div>
+        <div id="m-terms" class="wraptext" style="font-size:14px;color:var(--ink)"></div>
       </div>
       <div id="delivery-block">
         <div class="k" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px">Delivery Requirements</div>
-        <div id="m-delivery" style="font-size:14px;white-space:pre-wrap;color:var(--ink)"></div>
+        <div id="m-delivery" class="wraptext" style="font-size:14px;color:var(--ink)"></div>
       </div>
     </div>
-
     <div class="card">
       <h2>Item Pricing</h2>
-      <table id="lines">
+      <table id="lines" class="stack-mobile">
         <thead>
           <tr>
             <th style="width:36px">#</th>
@@ -114,26 +131,23 @@
       </table>
       <div class="grand">Total Quoted:&nbsp; <span class="amt" id="grandtotal">MWK 0.00</span></div>
     </div>
-
     <div class="card">
       <h2>Additional Information</h2>
       <div class="field"><label>Delivery Lead Time (days)</label><input type="number" id="leadtime" min="0" placeholder="e.g. 14"></div>
       <div class="field"><label>Quote Validity (days)</label><input type="number" id="validity" min="0" placeholder="e.g. 30"></div>
       <div class="field"><label>Notes / Comments</label><textarea id="notes" rows="3" placeholder="Any conditions, remarks, or clarifications"></textarea></div>
       <div class="field">
-        <label>Supporting Documents</label>
-        <div class="file-drop" id="dropzone">📎 &nbsp;Click to attach files (quotation letter, brochures, certificates)</div>
-        <input type="file" id="files" multiple style="display:none">
+        <label>Upload Quotation <span class="req">*</span></label>
+        <div class="file-drop" id="dropzone">📎 &nbsp;Click to attach your quotation document</div>
+        <input type="file" id="files" style="display:none">
         <div class="file-list" id="filelist"></div>
+        <div class="hint">One file only (PDF, Word, or image). Required.</div>
       </div>
     </div>
-
     <button class="btn" id="submitBtn">Submit Quotation</button>
   </div>
-
   <footer>© <span id="yr"></span> <strong>FDH Financial Holdings Limited</strong> · Operion Procure &nbsp;|&nbsp; Your submission remains confidential until evaluation.</footer>
 </div>
-
 <script>
 // ==== CONFIG — replace with your Power Automate flow endpoints ====
 const CONFIG = {
@@ -144,8 +158,7 @@ const CONFIG = {
 document.getElementById("yr").textContent = new Date().getFullYear();
 const params = new URLSearchParams(location.search);
 const TOKEN = params.get("token");
-let LINES = [], DEADLINE_PAST = false, attachedFiles = [];
-
+let LINES = [], DEADLINE_PAST = false, attachedFile = null;
 function money(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function recalc(){
   let grand=0;
@@ -156,11 +169,11 @@ function renderLines(){
   const body=document.getElementById("lines-body"); body.innerHTML="";
   LINES.forEach((ln,i)=>{
     const tr=document.createElement("tr");
-    tr.innerHTML='<td>'+(ln.lineNumber||i+1)+'</td>'+
-      '<td>'+(ln.itemDescription||"")+(ln.specification?'<div class="hint">'+ln.specification+'</div>':'')+'</td>'+
-      '<td class="num">'+(Number(ln.quantity)||0)+'</td>'+
-      '<td class="num"><input class="price-in" type="number" min="0" step="0.01" id="p'+i+'" placeholder="0.00"></td>'+
-      '<td class="num linetotal" id="t'+i+'">MWK 0.00</td>';
+    tr.innerHTML='<td data-label="#">'+(ln.lineNumber||i+1)+'</td>'+
+      '<td data-label="Item Description"><div class="desc">'+(ln.itemDescription||"")+(ln.specification?'<div class="hint">'+ln.specification+'</div>':'')+'</div></td>'+
+      '<td class="num" data-label="Qty">'+(Number(ln.quantity)||0)+'</td>'+
+      '<td class="num" data-label="Unit Price (MWK)"><input class="price-in" type="number" min="0" step="0.01" id="p'+i+'" placeholder="0.00"></td>'+
+      '<td class="num linetotal" data-label="Line Total" id="t'+i+'">MWK 0.00</td>';
     body.appendChild(tr);
   });
   LINES.forEach((_,i)=>document.getElementById("p"+i).addEventListener("input",recalc)); recalc();
@@ -190,7 +203,6 @@ async function load(){
       if(dr){ document.getElementById("m-delivery").textContent=dr; }
       else { document.getElementById("delivery-block").style.display="none"; }
     }
-
     LINES=data.lines||[]; renderLines();
     document.getElementById("loading").style.display="none";
     document.getElementById("content").style.display="block";
@@ -216,22 +228,50 @@ async function load(){
 }
 function showFatal(m){ document.getElementById("loading").innerHTML='<div class="msg err" style="display:block">'+m+'</div>'; }
 function lockForm(m,kind){ const b=document.getElementById("banner"); b.className="msg "+(kind==="ok"?"ok":"err"); b.textContent=m; b.style.display="block"; const sb=document.getElementById("submitBtn"); sb.disabled=true; sb.style.display="none"; document.querySelectorAll("input,textarea").forEach(el=>el.disabled=true); }
+
 document.getElementById("dropzone").addEventListener("click",()=>document.getElementById("files").click());
-document.getElementById("files").addEventListener("change",e=>{ attachedFiles=Array.from(e.target.files); document.getElementById("filelist").innerHTML=attachedFiles.map(f=>'<div>📎 '+f.name+' ('+Math.round(f.size/1024)+' KB)</div>').join(""); });
+document.getElementById("files").addEventListener("change",e=>{
+  // Single file only - a second selection replaces the first, it never adds to a list.
+  attachedFile = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+  const list = document.getElementById("filelist");
+  list.innerHTML = attachedFile
+    ? '<div>📎 '+attachedFile.name+' ('+Math.round(attachedFile.size/1024)+' KB)</div>'
+    : "";
+});
+
 function fileToBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(",")[1]); r.onerror=rej; r.readAsDataURL(file); }); }
+
 document.getElementById("submitBtn").addEventListener("click",async()=>{
   const btn=document.getElementById("submitBtn");
+  const banner=document.getElementById("banner");
   const lineData=LINES.map((ln,i)=>({rfqLineId:ln.rfqLineId,itemDescription:ln.itemDescription,quantity:ln.quantity,unitPrice:parseFloat(document.getElementById("p"+i).value)||0}));
-  if(lineData.some(l=>l.unitPrice<=0)){ const b=document.getElementById("banner"); b.className="msg err"; b.textContent="Please enter a unit price for every line item."; b.style.display="block"; window.scrollTo({top:0,behavior:"smooth"}); return; }
+
+  if(lineData.some(l=>l.unitPrice<=0)){
+    banner.className="msg err"; banner.textContent="Please enter a unit price for every line item."; banner.style.display="block";
+    window.scrollTo({top:0,behavior:"smooth"}); return;
+  }
+  if(!attachedFile){
+    banner.className="msg err"; banner.textContent="Please attach your quotation document — it is required."; banner.style.display="block";
+    window.scrollTo({top:0,behavior:"smooth"}); return;
+  }
+
   btn.disabled=true; btn.textContent="Submitting…";
   try{
-    const files=[]; for(const f of attachedFiles){ files.push({name:f.name,contentBase64:await fileToBase64(f)}); }
-    const payload={token:TOKEN,leadTime:parseInt(document.getElementById("leadtime").value)||null,validity:parseInt(document.getElementById("validity").value)||null,notes:document.getElementById("notes").value||"",lines:lineData,files:files};
+    const fileBase64 = await fileToBase64(attachedFile);
+    const payload={
+      token:TOKEN,
+      leadTime:parseInt(document.getElementById("leadtime").value)||null,
+      validity:parseInt(document.getElementById("validity").value)||null,
+      notes:document.getElementById("notes").value||"",
+      lines:lineData,
+      attachmentName: attachedFile.name,
+      attachmentBase64: fileBase64
+    };
     const res=await fetch(CONFIG.SUBMIT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     if(!res.ok) throw new Error("Submission failed ("+res.status+").");
-    const b=document.getElementById("banner"); b.className="msg ok"; b.textContent="✓ Your quotation has been submitted successfully. Thank you for participating."; b.style.display="block";
+    banner.className="msg ok"; banner.textContent="✓ Your quotation has been submitted successfully. Thank you for participating."; banner.style.display="block";
     document.querySelectorAll("input,textarea").forEach(el=>el.disabled=true); btn.style.display="none"; window.scrollTo({top:0,behavior:"smooth"});
-  }catch(e){ const b=document.getElementById("banner"); b.className="msg err"; b.textContent=e.message; b.style.display="block"; btn.disabled=false; btn.textContent="Submit Quotation"; }
+  }catch(e){ banner.className="msg err"; banner.textContent=e.message; banner.style.display="block"; btn.disabled=false; btn.textContent="Submit Quotation"; }
 });
 load();
 </script>
