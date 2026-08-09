@@ -46,6 +46,12 @@
 .badge.submitted{background:var(--ok-bg);color:var(--ok)}
 .item a.act{font-size:12.5px;font-weight:700;color:#fff;background:var(--fdh-blue);padding:9px 14px;border-radius:7px;text-decoration:none;flex:0 0 auto}
 .item a.act:hover{background:var(--fdh-blue-dark)}
+.filters{display:flex;gap:8px;margin-bottom:16px}
+.filter-pill{font-size:12.5px;font-weight:700;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 14px;cursor:pointer}
+.filter-pill.active{background:var(--fdh-blue);color:#fff;border-color:var(--fdh-blue)}
+.filter-pill:hover:not(.active){background:var(--bg)}
+.item a.view{font-size:12.5px;font-weight:700;color:var(--fdh-blue);background:#eaf1f9;padding:9px 14px;border-radius:7px;text-decoration:none;flex:0 0 auto}
+.item a.view:hover{background:#dbe9f7}
 .empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:13.5px}
 .loading{text-align:center;padding:60px 20px;color:var(--muted)}
 
@@ -97,6 +103,11 @@
       <div class="tabs">
         <div class="tab active" data-t="pending">Pending Action</div>
         <div class="tab" data-t="history">Submission History</div>
+      </div>
+      <div class="filters">
+        <div class="filter-pill active" data-f="all">All</div>
+        <div class="filter-pill" data-f="rfq">Quotations</div>
+        <div class="filter-pill" data-f="invoice">Invoices</div>
       </div>
       <div class="section active" id="sec-pending"><div class="loading">Loading…</div></div>
       <div class="section" id="sec-history"><div class="loading">Loading…</div></div>
@@ -196,12 +207,24 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   showScreen("screen-login");
 });
 
+let typeFilter = "all";
+let LAST_ITEMS = [];
+
 document.querySelectorAll(".tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
     tab.classList.add("active");
     document.getElementById("sec-" + tab.getAttribute("data-t")).classList.add("active");
+  });
+});
+
+document.querySelectorAll(".filter-pill").forEach(pill => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    typeFilter = pill.getAttribute("data-f");
+    renderItems();
   });
 });
 
@@ -212,10 +235,25 @@ function itemRow(item){
     ? '<span class="badge submitted">Submitted</span>'
     : '<span class="badge pending">Pending</span>';
   const action = item.status === "submitted"
-    ? "" : '<a class="act" href="' + item.url + '">' + (isRfq ? "Submit Quote" : "Submit Invoice") + '</a>';
+    ? '<a class="view" href="' + item.url + '">View Details</a>'
+    : '<a class="act" href="' + item.url + '">' + (isRfq ? "Submit Quote" : "Submit Invoice") + '</a>';
   return '<div class="item"><div class="icon">' + icon + '</div>' +
     '<div class="info"><div class="title">' + item.title + '</div>' +
     '<div class="meta">' + item.meta + '</div></div>' + badge + action + '</div>';
+}
+
+function renderItems(){
+  const filtered = typeFilter === "all" ? LAST_ITEMS : LAST_ITEMS.filter(i => i.type === typeFilter);
+  const pending = filtered.filter(i => i.status !== "submitted");
+  const history = filtered.filter(i => i.status === "submitted");
+
+  document.getElementById("sec-pending").innerHTML = pending.length
+    ? pending.map(itemRow).join("")
+    : '<div class="empty">Nothing pending right now. Check back after FDH invites you to a new RFQ or issues an LPO.</div>';
+
+  document.getElementById("sec-history").innerHTML = history.length
+    ? history.map(itemRow).join("")
+    : '<div class="empty">No submissions yet.</div>';
 }
 
 async function loadDashboard(){
@@ -238,16 +276,8 @@ async function loadDashboard(){
     document.getElementById("dashContent").style.display = "block";
     document.getElementById("supplierNameLabel").textContent = supplierName || data.supplierName || "";
 
-    const pending = (data.items || []).filter(i => i.status !== "submitted");
-    const history = (data.items || []).filter(i => i.status === "submitted");
-
-    document.getElementById("sec-pending").innerHTML = pending.length
-      ? pending.map(itemRow).join("")
-      : '<div class="empty">Nothing pending right now. Check back after FDH invites you to a new RFQ or issues an LPO.</div>';
-
-    document.getElementById("sec-history").innerHTML = history.length
-      ? history.map(itemRow).join("")
-      : '<div class="empty">No submissions yet.</div>';
+    LAST_ITEMS = data.items || [];
+    renderItems();
   }catch(e){
     document.getElementById("loadingRoot").innerHTML = '<div class="empty">Could not load your items: ' + e.message + '</div>';
   }
