@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Portal — FDH Financial Holdings</title>
+<style>
+:root{ --fdh-blue:#00539B; --fdh-blue-dark:#003D73; --fdh-gold:#C9A227; --ink:#1c2733; --muted:#6a7683; --line:#e2e8f0; --bg:#f4f7fa; --card:#fff; --err:#c0392b; --err-bg:#fdeceb; --ok:#1a7f4b; --ok-bg:#e7f6ee; --warn:#b8860b; --warn-bg:#fff6e0; }
+*{box-sizing:border-box} body{margin:0;font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* ---- Auth screens (login / create account) ---- */
+.auth-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:32px;max-width:400px;width:100%;box-shadow:0 10px 30px rgba(0,60,120,.08)}
+.auth-card::before{content:"";display:block;height:3px;background:linear-gradient(90deg,var(--fdh-gold),#e8d9a0,var(--fdh-gold));border-radius:2px;margin:-32px -32px 24px}
+.brand{text-align:center;margin-bottom:20px}
+.brand img{height:38px} .brand h1{font-size:17px;margin:8px 0 0;color:var(--fdh-blue-dark)}
+.brand p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.field{margin-bottom:16px} .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px}
+.field input:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.12)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+.btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;width:100%;cursor:pointer;margin-top:4px}
+.btn:hover{background:var(--fdh-blue-dark)} .btn:disabled{opacity:.5;cursor:not-allowed}
+.msg{padding:11px 14px;border-radius:8px;font-size:13.5px;margin-bottom:16px;display:none;font-weight:500}
+.msg.err{background:var(--err-bg);color:var(--err);display:block} .msg.ok{background:var(--ok-bg);color:var(--ok);display:block}
+.auth-footer{text-align:center;margin-top:18px;font-size:11.5px;color:var(--muted)}
+
+/* ---- Dashboard ---- */
+.topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.topbar .brand{display:flex;align-items:center;gap:12px;text-align:left;margin:0} .topbar img{height:36px}
+.topbar .brand-text strong{display:block;font-size:15px;color:var(--fdh-blue-dark)}
+.topbar .brand-text span{font-size:12px;color:var(--muted)}
+.logout{font-size:12.5px;font-weight:700;color:var(--fdh-blue);background:none;border:1px solid var(--line);border-radius:7px;padding:8px 14px;cursor:pointer}
+.logout:hover{background:var(--bg)}
+.wrap{max-width:820px;margin:0 auto;padding:24px 20px}
+.hello{font-size:20px;font-weight:600;margin:0 0 4px;color:var(--fdh-blue-dark)}
+.hello-sub{font-size:13.5px;color:var(--muted);margin:0 0 24px}
+.tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.tab{padding:10px 16px;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:var(--fdh-blue);border-bottom-color:var(--fdh-blue)}
+.section{display:none} .section.active{display:block}
+.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.item .icon{width:36px;height:36px;border-radius:8px;background:#eaf1f9;color:var(--fdh-blue);display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto}
+.item .info{flex:1;min-width:0}
+.item .title{font-size:14.5px;font-weight:700}
+.item .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:20px;flex:0 0 auto}
+.badge.pending{background:var(--warn-bg);color:var(--warn)}
+.badge.submitted{background:var(--ok-bg);color:var(--ok)}
+.item a.act{font-size:12.5px;font-weight:700;color:#fff;background:var(--fdh-blue);padding:9px 14px;border-radius:7px;text-decoration:none;flex:0 0 auto}
+.item a.act:hover{background:var(--fdh-blue-dark)}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-size:13.5px}
+.loading{text-align:center;padding:60px 20px;color:var(--muted)}
+
+.screen{display:none} .screen.active{display:block}
+</style></head>
+<body>
+
+<!-- ============ SCREEN: Create Account ============ -->
+<div class="screen" id="screen-create">
+  <div class="auth-shell"><div class="auth-card">
+    <h1 style="font-size:19px;margin:0 0 4px;color:var(--fdh-blue-dark)">Create Your Account</h1>
+    <p style="margin:0 0 24px;font-size:13.5px;color:var(--muted)">Set up access to the FDH Supplier Portal.</p>
+    <div id="createBanner" class="msg"></div>
+    <div id="createFormArea">
+      <div class="field"><label>Username</label><input type="text" id="c-username" placeholder="Choose a username" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input type="password" id="c-password" placeholder="At least 8 characters" autocomplete="new-password"><div class="hint">Use a password you don't use elsewhere.</div></div>
+      <div class="field"><label>Confirm Password</label><input type="password" id="c-confirm" autocomplete="new-password"></div>
+      <button class="btn" id="createBtn">Create Account</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- ============ SCREEN: Login ============ -->
+<div class="screen" id="screen-login">
+  <div class="auth-shell"><div class="auth-card">
+    <div class="brand">
+      <img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH" onerror="this.style.display='none'">
+      <h1>Supplier Portal</h1><p>Sign in to view your pending items</p>
+    </div>
+    <div id="loginBanner" class="msg"></div>
+    <div class="field"><label>Username</label><input type="text" id="l-username" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="l-password" autocomplete="current-password"></div>
+    <button class="btn" id="loginBtn">Sign In</button>
+    <div class="auth-footer">Access is by invitation only. Contact FDH Procurement if you need help.</div>
+  </div></div>
+</div>
+
+<!-- ============ SCREEN: Dashboard ============ -->
+<div class="screen" id="screen-dashboard">
+  <div class="topbar">
+    <div class="brand"><img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH" onerror="this.style.display='none'">
+      <div class="brand-text"><strong>Supplier Portal</strong><span id="supplierNameLabel">—</span></div></div>
+    <button class="logout" id="logoutBtn">Sign Out</button>
+  </div>
+  <div class="wrap">
+    <div id="dashContent" style="display:none">
+      <h1 class="hello">Welcome back</h1>
+      <p class="hello-sub">Everything awaiting your action, in one place.</p>
+      <div class="tabs">
+        <div class="tab active" data-t="pending">Pending Action</div>
+        <div class="tab" data-t="history">Submission History</div>
+      </div>
+      <div class="section active" id="sec-pending"><div class="loading">Loading…</div></div>
+      <div class="section" id="sec-history"><div class="loading">Loading…</div></div>
+    </div>
+    <div id="loadingRoot" class="loading">Loading your portal…</div>
+  </div>
+</div>
+
+<script>
+// ==== CONFIG — paste your three deployed flow URLs here ====
+const CREATE_ACCOUNT_FLOW_URL = "PASTE_CREATE_ACCOUNT_FLOW_URL_HERE";
+const LOGIN_FLOW_URL          = "PASTE_LOGIN_FLOW_URL_HERE";
+const MY_ITEMS_FLOW_URL       = "PASTE_MY_ITEMS_FLOW_URL_HERE";
+// =============================================================
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+async function sha256(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+/* ---------------- Create Account ---------------- */
+const params = new URLSearchParams(location.search);
+const INVITE_TOKEN = params.get("token");
+
+document.getElementById("createBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("createBtn");
+  const banner = document.getElementById("createBanner");
+  const username = document.getElementById("c-username").value.trim();
+  const pw = document.getElementById("c-password").value;
+  const confirm = document.getElementById("c-confirm").value;
+
+  if(!username){ banner.className="msg err"; banner.textContent="Please choose a username."; return; }
+  if(pw.length < 8){ banner.className="msg err"; banner.textContent="Password must be at least 8 characters."; return; }
+  if(pw !== confirm){ banner.className="msg err"; banner.textContent="Passwords do not match."; return; }
+
+  btn.disabled = true; btn.textContent = "Creating…";
+  try{
+    const passwordHash = await sha256(pw);
+    const res = await fetch(CREATE_ACCOUNT_FLOW_URL, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ token: INVITE_TOKEN, username, passwordHash })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error){ throw new Error(data.error || ("Request failed (" + res.status + ")")); }
+
+    document.getElementById("createFormArea").style.display = "none";
+    banner.className = "msg ok";
+    banner.textContent = "✓ Account created. Redirecting to sign in…";
+    setTimeout(() => { location.href = location.pathname; }, 1800); // drop ?token=, land on login
+  }catch(e){
+    banner.className = "msg err"; banner.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Create Account";
+  }
+});
+
+/* ---------------- Login ---------------- */
+async function doLogin(){
+  const btn = document.getElementById("loginBtn");
+  const banner = document.getElementById("loginBanner");
+  const username = document.getElementById("l-username").value.trim();
+  const pw = document.getElementById("l-password").value;
+
+  if(!username || !pw){ banner.className="msg err"; banner.textContent="Enter your username and password."; return; }
+
+  btn.disabled = true; btn.textContent = "Signing in…";
+  try{
+    const passwordHash = await sha256(pw);
+    const res = await fetch(LOGIN_FLOW_URL, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username, passwordHash })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.success){ throw new Error(data.error || "Incorrect username or password."); }
+
+    sessionStorage.setItem("fdho_supplierId", data.supplierId);
+    sessionStorage.setItem("fdho_sessionToken", data.sessionToken);
+    sessionStorage.setItem("fdho_supplierName", data.supplierName || "");
+    showScreen("screen-dashboard");
+    loadDashboard();
+  }catch(e){
+    banner.className = "msg err"; banner.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Sign In";
+  }
+}
+document.getElementById("loginBtn").addEventListener("click", doLogin);
+document.getElementById("l-password").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
+
+/* ---------------- Dashboard ---------------- */
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  sessionStorage.clear();
+  showScreen("screen-login");
+});
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("sec-" + tab.getAttribute("data-t")).classList.add("active");
+  });
+});
+
+function itemRow(item){
+  const isRfq = item.type === "rfq";
+  const icon = isRfq ? "📋" : "🧾";
+  const badge = item.status === "submitted"
+    ? '<span class="badge submitted">Submitted</span>'
+    : '<span class="badge pending">Pending</span>';
+  const action = item.status === "submitted"
+    ? "" : '<a class="act" href="' + item.url + '">' + (isRfq ? "Submit Quote" : "Submit Invoice") + '</a>';
+  return '<div class="item"><div class="icon">' + icon + '</div>' +
+    '<div class="info"><div class="title">' + item.title + '</div>' +
+    '<div class="meta">' + item.meta + '</div></div>' + badge + action + '</div>';
+}
+
+async function loadDashboard(){
+  const supplierId = sessionStorage.getItem("fdho_supplierId");
+  const sessionToken = sessionStorage.getItem("fdho_sessionToken");
+  const supplierName = sessionStorage.getItem("fdho_supplierName");
+
+  try{
+    const res = await fetch(MY_ITEMS_FLOW_URL, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ supplierId, sessionToken })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error){
+      if(data.sessionExpired){ sessionStorage.clear(); showScreen("screen-login"); return; }
+      throw new Error(data.error || ("Request failed (" + res.status + ")"));
+    }
+
+    document.getElementById("loadingRoot").style.display = "none";
+    document.getElementById("dashContent").style.display = "block";
+    document.getElementById("supplierNameLabel").textContent = supplierName || data.supplierName || "";
+
+    const pending = (data.items || []).filter(i => i.status !== "submitted");
+    const history = (data.items || []).filter(i => i.status === "submitted");
+
+    document.getElementById("sec-pending").innerHTML = pending.length
+      ? pending.map(itemRow).join("")
+      : '<div class="empty">Nothing pending right now. Check back after FDH invites you to a new RFQ or issues an LPO.</div>';
+
+    document.getElementById("sec-history").innerHTML = history.length
+      ? history.map(itemRow).join("")
+      : '<div class="empty">No submissions yet.</div>';
+  }catch(e){
+    document.getElementById("loadingRoot").innerHTML = '<div class="empty">Could not load your items: ' + e.message + '</div>';
+  }
+}
+
+/* ---------------- Router: decide which screen to show on load ---------------- */
+(function boot(){
+  if(INVITE_TOKEN){
+    showScreen("screen-create");
+    return;
+  }
+  const supplierId = sessionStorage.getItem("fdho_supplierId");
+  const sessionToken = sessionStorage.getItem("fdho_sessionToken");
+  if(supplierId && sessionToken){
+    showScreen("screen-dashboard");
+    loadDashboard();
+    return;
+  }
+  showScreen("screen-login");
+})();
+</script>
+</body></html>
