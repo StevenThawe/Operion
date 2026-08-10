@@ -897,6 +897,7 @@ document.getElementById("lpo-ackBtn").addEventListener("click", async () => {
     if(!res.ok) throw new Error("Could not acknowledge (" + res.status + ").");
     banner.className = "q-msg ok"; banner.textContent = "✓ Order acknowledged.";
     btn.style.display = "none";
+    loadDashboard();
   }catch(e){
     banner.className = "q-msg err"; banner.textContent = e.message;
     btn.disabled = false; btn.textContent = "Acknowledge Order";
