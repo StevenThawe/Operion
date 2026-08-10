@@ -108,7 +108,9 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .q-table tr:last-child td{border-bottom:none}
 .q-table td.num,.q-table th.num{text-align:right;font-variant-numeric:tabular-nums}
 .q-table td.num,.q-table th.num{white-space:nowrap}
-.q-table input[type=number]{width:110px;padding:9px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:14.5px;text-align:right;font-family:inherit;transition:border-color .15s;box-sizing:border-box}
+.q-table input[type=number]{width:105px;padding:4px 2px;border:none;border-bottom:1.5px solid var(--line);border-radius:0;font-size:13.5px;font-family:inherit;text-align:right;background:transparent;transition:border-color .15s;box-sizing:border-box;color:var(--ink)}
+.q-table input[type=number]:focus{outline:none;border-bottom-color:var(--fdh-blue)}
+.q-table input[type=number]:disabled{border-bottom-color:transparent;color:var(--ink)}
 @media (max-width:600px){
   .q-table{display:block;overflow-x:auto;white-space:nowrap}
 }
@@ -127,6 +129,13 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .q-msg{padding:13px 16px;border-radius:9px;font-size:13.5px;margin-bottom:18px;display:none;font-weight:600;line-height:1.4}
 .q-msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd}
 .q-msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b7e4cb}
+
+/* ---- Receipt (ported from receipt.html) ---- */
+.rcpt-hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px;margin:-32px -28px 24px}
+.rcpt-hero h1{margin:0 0 4px;font-size:22px;font-weight:600;font-family:'Lora',serif}
+.rcpt-hero p{margin:0;opacity:.9;font-size:14px}
+.rcpt-stamp{text-align:center;color:var(--ok);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:var(--ok-bg);border:1px solid #b7e4cb;border-radius:20px;padding:6px 18px;margin:0 auto 14px;display:block;width:fit-content}
+.rcpt-amt{font-size:30px;font-weight:800;color:var(--ok);text-align:center;margin:6px 0;font-family:'Lora',serif}
 </style></head>
 <body>
 
@@ -308,23 +317,27 @@ h1,h2{font-family:'Lora',Georgia,serif}
 
 <div class="screen" id="screen-receipt">
   <div class="detail-topbar"><button class="back-btn" id="receiptBackBtn">← Back to Dashboard</button><span class="dt-title">Payment Receipt</span></div>
-  <div style="overflow-y:auto;height:calc(100vh - 65px)"><div class="q-wrap">
-    <div id="receiptLoading" class="loading">Loading…</div>
-    <div id="receiptContent" style="display:none">
-      <div class="q-card">
-        <h2>Payment Confirmation</h2>
-        <div class="q-meta-grid">
-          <div><div class="k">Invoice Reference</div><div class="v" id="rcpt-invref">—</div></div>
-          <div><div class="k">Your Invoice Number</div><div class="v" id="rcpt-suppliernum">—</div></div>
-          <div><div class="k">Payment Date</div><div class="v" id="rcpt-date">—</div></div>
-          <div><div class="k">Payment Reference</div><div class="v" id="rcpt-ref">—</div></div>
-          <div><div class="k">Payment Method</div><div class="v" id="rcpt-method">—</div></div>
-          <div><div class="k">Amount Paid</div><div class="v" id="rcpt-amount">—</div></div>
+  <div style="overflow-y:auto;height:calc(100vh - 68px)">
+    <div class="rcpt-hero"><div class="q-wrap" style="padding:0;margin:0;max-width:800px;margin:0 auto"><h1>Payment Confirmation</h1><p>Your invoice has been paid. Details below.</p></div></div>
+    <div class="q-wrap" style="padding-top:0">
+      <div id="receiptLoading" class="loading">Loading receipt details…</div>
+      <div id="receiptContent" style="display:none">
+        <div class="q-card">
+          <span class="rcpt-stamp">✓ Paid in Full</span>
+          <div class="rcpt-amt" id="rcpt-amount">MWK 0.00</div>
+          <div class="q-meta-grid" style="margin-top:18px">
+            <div><div class="k">Invoice Reference</div><div class="v" id="rcpt-invref">—</div></div>
+            <div><div class="k">Your Invoice Number</div><div class="v" id="rcpt-suppliernum">—</div></div>
+            <div><div class="k">Payment Date</div><div class="v" id="rcpt-date">—</div></div>
+            <div><div class="k">Payment Reference</div><div class="v" id="rcpt-ref">—</div></div>
+            <div><div class="k">Payment Method</div><div class="v" id="rcpt-method">—</div></div>
+            <div><div class="k">Supplier</div><div class="v" id="rcpt-supplier">—</div></div>
+          </div>
         </div>
+        <div class="q-submit-bar"><button class="btn" id="rcpt-downloadBtn" style="width:100%">Download Receipt (PDF)</button></div>
       </div>
-      <div class="q-submit-bar"><button class="btn" id="rcpt-downloadBtn" style="width:100%">⬇ Download Receipt (PDF)</button></div>
     </div>
-  </div></div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -598,10 +611,21 @@ function qRenderLines(){
 function qLockForm(msg, ok){
   const b = document.getElementById("quoteRootMsg");
   b.className = "q-msg " + (ok ? "ok" : "err");
-  b.textContent = msg;
+  b.innerHTML = "🔒 <strong>This quotation has already been submitted and can no longer be edited.</strong><br>" + msg;
   document.getElementById("q-submitBtn").style.display = "none";
   document.getElementById("q-dropzone").style.display = "none";
   document.querySelectorAll("#quoteContent input, #quoteContent textarea").forEach(el => el.disabled = true);
+
+  // Replace each price input with plain text so it reads identically to the
+  // Qty and Line Total columns, rather than looking like a still-active field.
+  Q_LINES.forEach((ln, i) => {
+    const input = document.getElementById("qp"+i);
+    if(!input) return;
+    const span = document.createElement("span");
+    span.textContent = input.value ? qMoney(input.value) : "—";
+    span.style.cssText = "font-size:13.5px;font-weight:400;color:var(--ink)";
+    input.replaceWith(span);
+  });
 }
 
 async function openQuoteScreen(token){
@@ -882,6 +906,16 @@ document.getElementById("lpo-ackBtn").addEventListener("click", async () => {
 /* ---------------- Native Receipt screen ---------------- */
 document.getElementById("receiptBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
 
+const BUYER = {
+  name: "FDH Financial Holdings Limited",
+  address: ["First Floor, Umoyo House", "Victoria Avenue", "P.O. Box 512", "Blantyre, Malawi"],
+  contact: ["Tel: (265) 111 820 219/397", "Fax: (265) 111 823 044"]
+};
+
+let LAST_RECEIPT = null;
+
+function rcptDateOnly(v){ if(!v) return ""; const d = new Date(v); return isNaN(d) ? "" : d.toLocaleDateString(); }
+
 async function openReceiptScreen(token){
   showScreen("screen-receipt");
   document.getElementById("receiptLoading").style.display = "block";
@@ -892,78 +926,83 @@ async function openReceiptScreen(token){
     const res = await fetch(RECEIPT_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
     if(!res.ok) throw new Error("Could not load this receipt (" + res.status + ").");
     const data = await res.json();
+    if(data.error){ document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + data.error + '</div>'; return; }
 
+    LAST_RECEIPT = data;
+    document.getElementById("rcpt-amount").textContent = invMoney(data.amountApplied);
     document.getElementById("rcpt-invref").textContent = data.invoiceReference || "—";
     document.getElementById("rcpt-suppliernum").textContent = data.supplierInvoiceNumber || "—";
-    document.getElementById("rcpt-date").textContent = data.paymentDate ? new Date(data.paymentDate).toLocaleDateString() : "—";
+    document.getElementById("rcpt-date").textContent = rcptDateOnly(data.paymentDate) || "—";
     document.getElementById("rcpt-ref").textContent = data.paymentReference || "—";
     document.getElementById("rcpt-method").textContent = data.paymentMethod || "—";
-    document.getElementById("rcpt-amount").textContent = invMoney(data.amountApplied);
+    document.getElementById("rcpt-supplier").textContent = data.supplierName || "—";
 
     document.getElementById("receiptLoading").style.display = "none";
     document.getElementById("receiptContent").style.display = "block";
-    LAST_RECEIPT = data;
   }catch(e){
-    document.getElementById("receiptLoading").textContent = e.message || "Failed to load.";
+    document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + (e.message || "Failed to load.") + '</div>';
   }
 }
-
-let LAST_RECEIPT = null;
 
 document.getElementById("rcpt-downloadBtn").addEventListener("click", () => {
   if(!LAST_RECEIPT) return;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
-  const margin = 50;
-  let y = 60;
+  const M = 48;
+  let y = 50;
 
-  // Header band
-  doc.setFillColor(0, 83, 155);
-  doc.rect(0, 0, pageW, 90, "F");
-  doc.setFillColor(201, 162, 39);
-  doc.rect(0, 90, pageW, 4, "F");
-  doc.setTextColor(255,255,255);
-  doc.setFont("helvetica", "bold"); doc.setFontSize(18);
-  doc.text("FDH Financial Holdings", margin, 42);
-  doc.setFont("helvetica", "normal"); doc.setFontSize(10.5);
-  doc.text("Payment Receipt Confirmation", margin, 62);
+  doc.setFillColor(0,83,155); doc.rect(0,0,pageW,8,"F");
+  doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(0,83,155);
+  doc.text(BUYER.name, M, y); y += 16;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+  BUYER.address.concat(BUYER.contact).forEach(l => { doc.text(l, M, y); y += 11; });
 
-  y = 130;
-  doc.setTextColor(28, 39, 51);
-  const row = (label, value) => {
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-    doc.setTextColor(106,118,131);
-    doc.text(label.toUpperCase(), margin, y);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(12.5);
-    doc.setTextColor(28,39,51);
-    doc.text(String(value || "—"), margin, y + 16);
-    y += 42;
-  };
+  doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(28,39,51);
+  doc.text("PAYMENT RECEIPT", pageW - M, 52, { align: "right" });
+  doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.setTextColor(90,100,112);
+  doc.text("Issued: " + new Date().toLocaleDateString(), pageW - M, 70, { align: "right" });
 
-  row("Supplier", LAST_RECEIPT.supplierName);
-  row("Invoice Reference", LAST_RECEIPT.invoiceReference);
-  row("Your Invoice Number", LAST_RECEIPT.supplierInvoiceNumber);
-  row("Payment Date", LAST_RECEIPT.paymentDate ? new Date(LAST_RECEIPT.paymentDate).toLocaleDateString() : "—");
-  row("Payment Reference", LAST_RECEIPT.paymentReference);
-  row("Payment Method", document.getElementById("rcpt-method").textContent);
+  y = Math.max(y, 100) + 16;
+  doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 30;
 
-  doc.setDrawColor(232, 217, 160); doc.setLineWidth(1.5);
-  doc.line(margin, y, pageW - margin, y);
-  y += 30;
-  doc.setFont("helvetica", "bold"); doc.setFontSize(11);
-  doc.setTextColor(106,118,131);
-  doc.text("AMOUNT PAID", margin, y);
-  doc.setFont("helvetica", "bold"); doc.setFontSize(22);
-  doc.setTextColor(0, 83, 155);
-  doc.text(document.getElementById("rcpt-amount").textContent, margin, y + 28);
+  doc.setFont("helvetica","bold"); doc.setFontSize(26); doc.setTextColor(26,127,75);
+  doc.text("PAID IN FULL", pageW/2, y, { align: "center" });
+  y += 34;
+  doc.setFontSize(22); doc.setTextColor(0,83,155);
+  doc.text(String(document.getElementById("rcpt-amount").textContent), pageW/2, y, { align: "center" });
+  y += 44;
 
-  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-  doc.setTextColor(106,118,131);
-  doc.text("This is a system-generated receipt from the FDH Operion Procure system.", margin, 800);
+  const rows = [
+    ["Invoice Reference", document.getElementById("rcpt-invref").textContent],
+    ["Your Invoice Number", document.getElementById("rcpt-suppliernum").textContent],
+    ["Supplier", document.getElementById("rcpt-supplier").textContent],
+    ["Payment Date", document.getElementById("rcpt-date").textContent],
+    ["Payment Reference", document.getElementById("rcpt-ref").textContent],
+    ["Payment Method", document.getElementById("rcpt-method").textContent]
+  ];
+  doc.setFontSize(10);
+  rows.forEach(([label, value]) => {
+    doc.setFont("helvetica","bold"); doc.setTextColor(90,100,112);
+    doc.text(label, M, y);
+    doc.setFont("helvetica","normal"); doc.setTextColor(28,39,51);
+    doc.text(String(value || "—"), pageW - M, y, { align: "right" });
+    y += 20;
+    doc.setDrawColor(240,243,247); doc.line(M, y-8, pageW-M, y-8);
+  });
 
-  const filename = "Receipt_" + (LAST_RECEIPT.invoiceReference || "Payment") + ".pdf";
-  doc.save(filename);
+  y += 20;
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(140,150,162);
+  doc.text("This receipt confirms payment has been made in full for the invoice referenced above.", M, y);
+  y += 12;
+  doc.text("Please retain this document for your records.", M, y);
+
+  const h = doc.internal.pageSize.getHeight();
+  doc.setFontSize(7.5); doc.setTextColor(140,150,162);
+  doc.text(BUYER.name + " · Operion Procure", M, h - 24);
+
+  doc.save((document.getElementById("rcpt-invref").textContent || "payment-receipt") + "-receipt.pdf");
 });
 
 /* ---------------- Router: decide which screen to show on load ---------------- */
