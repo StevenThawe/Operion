@@ -107,12 +107,11 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .q-table th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#fafbfd}
 .q-table tr:last-child td{border-bottom:none}
 .q-table td.num,.q-table th.num{text-align:right;font-variant-numeric:tabular-nums}
-.q-table{table-layout:fixed}
-.q-table th:nth-child(1),.q-table td:nth-child(1){width:auto}
-.q-table th:nth-child(2),.q-table td:nth-child(2){width:70px}
-.q-table th:nth-child(3),.q-table td:nth-child(3){width:150px}
-.q-table th:nth-child(4),.q-table td:nth-child(4){width:130px}
-.q-table input[type=number]{width:100%;min-width:120px;padding:10px 12px;border:1.5px solid var(--line);border-radius:7px;font-size:14.5px;text-align:right;font-family:inherit;transition:border-color .15s;box-sizing:border-box}
+.q-table td.num,.q-table th.num{white-space:nowrap}
+.q-table input[type=number]{width:110px;padding:9px 10px;border:1.5px solid var(--line);border-radius:7px;font-size:14.5px;text-align:right;font-family:inherit;transition:border-color .15s;box-sizing:border-box}
+@media (max-width:600px){
+  .q-table{display:block;overflow-x:auto;white-space:nowrap}
+}
 .q-table input:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.10)}
 .q-grand{display:flex;justify-content:flex-end;align-items:baseline;gap:14px;margin-top:16px;padding-top:16px;border-top:2px solid var(--fdh-gold-soft)}
 .q-grand .amt{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--fdh-blue)}
