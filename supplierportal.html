@@ -756,8 +756,8 @@ function invRenderLines(){
   let grand = 0;
   body.innerHTML = INV_LINES.map(ln => {
     const desc = pick(ln, ["itemDescription","description"]) || "";
-    const qty = pick(ln, ["quantityBilled","quantityReceived","quantityAccepted","quantity"]) || 0;
-    const price = pick(ln, ["unitPrice","awardedUnitPrice"]) || 0;
+    const qty = pick(ln, ["acceptedQty","quantityBilled","quantityReceived","quantityAccepted","quantity"]) || 0;
+    const price = pick(ln, ["awardedPrice","unitPrice","awardedUnitPrice"]) || 0;
     const total = Number(qty) * Number(price);
     grand += total;
     return '<tr><td>' + desc + '</td><td class="num">' + qty + '</td><td class="num">' + invMoney(price) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
@@ -815,8 +815,8 @@ document.getElementById("inv-submitBtn").addEventListener("click", async () => {
   const lineData = INV_LINES.map(ln => ({
     grnLineId: pick(ln, ["grnLineId","id"]),
     itemDescription: pick(ln, ["itemDescription","description"]) || "",
-    quantityBilled: Number(pick(ln, ["quantityBilled","quantityReceived","quantityAccepted","quantity"])) || 0,
-    unitPrice: Number(pick(ln, ["unitPrice","awardedUnitPrice"])) || 0
+    quantityBilled: Number(pick(ln, ["acceptedQty","quantityBilled","quantityReceived","quantityAccepted","quantity"])) || 0,
+    unitPrice: Number(pick(ln, ["awardedPrice","unitPrice","awardedUnitPrice"])) || 0
   }));
   const invoiceAmount = lineData.reduce((s,l) => s + (l.quantityBilled * l.unitPrice), 0);
 
