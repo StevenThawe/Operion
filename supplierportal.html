@@ -289,7 +289,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
 
 <div class="screen" id="screen-lpo">
   <div class="detail-topbar"><button class="back-btn" id="lpoBackBtn">← Back to Dashboard</button><span class="dt-title" id="lpoTopTitle">Purchase Order</span></div>
-  <div style="overflow-y:auto;height:calc(100vh - 65px)"><div class="q-wrap">
+  <div style="overflow-y:auto;height:calc(100vh - 68px)"><div class="q-wrap">
     <div id="lpoRootMsg" class="q-msg"></div>
     <div id="lpoLoading" class="loading">Loading…</div>
     <div id="lpoContent" style="display:none">
@@ -302,18 +302,23 @@ h1,h2{font-family:'Lora',Georgia,serif}
         </div>
       </div>
       <div class="q-card"><h2>Delivery &amp; Payment</h2>
-        <div class="q-field"><label style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Delivery Address</label><div class="q-wraptext" id="lpo-address">—</div></div>
-        <div class="q-field"><label style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Payment Terms</label><div class="q-wraptext" id="lpo-paymentterms">—</div></div>
-        <div class="q-field"><label style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Terms &amp; Conditions</label><div class="q-wraptext" id="lpo-terms">—</div></div>
+        <div class="q-field"><label>Delivery Address</label><div class="q-wraptext" id="lpo-address">—</div></div>
+        <div class="q-field"><label>Payment Terms</label><div class="q-wraptext" id="lpo-paymentterms">—</div></div>
+        <div class="q-field"><label>Terms &amp; Conditions</label><div class="q-wraptext" id="lpo-terms">—</div></div>
       </div>
       <div class="q-card"><h2>Order Lines</h2>
         <table class="q-table"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Line Total</th></tr></thead>
         <tbody id="lpo-lines-body"></tbody></table>
+        <div class="q-grand">Order Total:&nbsp;<span class="amt" id="lpo-grandtotal">MWK 0.00</span></div>
       </div>
-      <div class="q-submit-bar"><button class="btn" id="lpo-ackBtn" style="width:100%">Acknowledge Order</button></div>
+      <div class="q-submit-bar" style="display:flex;gap:12px">
+        <button class="btn" id="lpo-ackBtn" style="flex:1">Acknowledge Order</button>
+        <button class="btn" id="lpo-pdfBtn" style="flex:1;background:#fff;color:var(--fdh-blue);border:1.5px solid var(--fdh-blue)">Download PDF</button>
+      </div>
     </div>
   </div></div>
 </div>
+<div id="qrhost" style="position:absolute;left:-9999px;top:-9999px"></div>
 
 <div class="screen" id="screen-receipt">
   <div class="detail-topbar"><button class="back-btn" id="receiptBackBtn">← Back to Dashboard</button><span class="dt-title">Payment Receipt</span></div>
@@ -341,6 +346,8 @@ h1,h2{font-family:'Lora',Georgia,serif}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 // ==== CONFIG — paste your three deployed flow URLs here ====
 const CREATE_ACCOUNT_FLOW_URL = "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/14/workflows/faa11e94c50c4822a60e8e1e447de21a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CVjOEgktbDg0QFzD-Gjokzl_BOBfZCZ4_LZIA70gcy0";
@@ -840,7 +847,7 @@ document.getElementById("inv-submitBtn").addEventListener("click", async () => {
 });
 
 /* ---------------- Native LPO screen ---------------- */
-let LPO_TOKEN = null;
+let LPO_TOKEN = null, LPO_DATA = null, LPO_LINES = [];
 
 document.getElementById("lpoBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
 
@@ -856,6 +863,8 @@ async function openLpoScreen(token){
     const res = await fetch(LPO_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
     if(!res.ok) throw new Error("Could not load this order (" + res.status + ").");
     const data = await res.json();
+    if(data.error){ document.getElementById("lpoLoading").textContent = data.error; return; }
+    LPO_DATA = data;
 
     document.getElementById("lpo-number").textContent = data.lpoNumber || "—";
     document.getElementById("lpoTopTitle").textContent = data.lpoNumber || "Purchase Order";
@@ -866,14 +875,14 @@ async function openLpoScreen(token){
     document.getElementById("lpo-paymentterms").textContent = data.paymentTerms || "—";
     document.getElementById("lpo-terms").textContent = data.terms || "—";
 
-    const lines = data.lines || [];
-    document.getElementById("lpo-lines-body").innerHTML = lines.map(ln => {
-      const desc = pick(ln, ["itemDescription","description"]) || "";
-      const qty = pick(ln, ["quantity","quantityOrdered"]) || 0;
-      const price = pick(ln, ["unitPrice"]) || 0;
-      const total = pick(ln, ["lineTotal"]) != null ? pick(ln, ["lineTotal"]) : (Number(qty) * Number(price));
-      return '<tr><td>' + desc + '</td><td class="num">' + qty + '</td><td class="num">' + invMoney(price) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
+    LPO_LINES = data.lines || [];
+    let grand = 0;
+    document.getElementById("lpo-lines-body").innerHTML = LPO_LINES.map((ln,i) => {
+      const total = Number(ln.lineTotal) || (Number(ln.quantity)||0)*(Number(ln.unitPrice)||0);
+      grand += total;
+      return '<tr><td>' + (ln.itemDescription||"") + '</td><td class="num">' + (Number(ln.quantity)||0) + '</td><td class="num">' + invMoney(ln.unitPrice) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
     }).join("");
+    document.getElementById("lpo-grandtotal").textContent = invMoney(data.totalAmount || grand);
 
     document.getElementById("lpoLoading").style.display = "none";
     document.getElementById("lpoContent").style.display = "block";
@@ -904,7 +913,107 @@ document.getElementById("lpo-ackBtn").addEventListener("click", async () => {
   }
 });
 
-/* ---------------- Native Receipt screen ---------------- */
+const CRM_RECORD_URL = "https://fdh-holdings.crm.dynamics.com/main.aspx?appid=533a8853-446e-f111-ab0d-6045bd0917be&pagetype=entityrecord&etn=fdho_lpo&id=";
+
+function lpoQrDataUrl(text){
+  try{
+    const host = document.getElementById("qrhost");
+    host.innerHTML = "";
+    new QRCode(host, { text, width:256, height:256, correctLevel: QRCode.CorrectLevel.M });
+    const cvs = host.querySelector("canvas");
+    return cvs ? cvs.toDataURL("image/png") : null;
+  }catch(e){ return null; }
+}
+
+document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
+  if(!LPO_DATA) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const M = 40; let y = 46;
+
+  doc.setFillColor(0,83,155); doc.rect(0,0,pageW,8,"F");
+  doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
+
+  const QR = 58, QRY = 32; let textX = M, hasQr = false;
+  if(LPO_DATA.lpoId){
+    const qr = lpoQrDataUrl(CRM_RECORD_URL + LPO_DATA.lpoId);
+    if(qr){ doc.addImage(qr,"PNG",M,QRY,QR,QR); doc.setFontSize(6); doc.setTextColor(150,158,168); doc.text("Scan for record", M, QRY+QR+7); textX = M+QR+12; hasQr = true; }
+  }
+  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(0,83,155);
+  doc.text(BUYER.name, textX, y); y += 16;
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(90,100,112);
+  BUYER.address.concat(BUYER.contact).forEach(l => { doc.text(l, textX, y); y += 10.5; });
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(28,39,51);
+  doc.text("LOCAL PURCHASE ORDER", pageW - M, 46, { align:"right" });
+  doc.setFontSize(9.5); doc.setFont("helvetica","normal"); doc.setTextColor(90,100,112);
+  doc.text("LPO No:", pageW - M - 92, 64, { align:"right" });
+  doc.text("Date:", pageW - M - 92, 78, { align:"right" });
+  doc.setFont("helvetica","bold"); doc.setTextColor(28,39,51);
+  doc.text(LPO_DATA.lpoNumber||"", pageW - M, 64, { align:"right" });
+  doc.text(LPO_DATA.orderDate ? new Date(LPO_DATA.orderDate).toLocaleDateString() : "-", pageW - M, 78, { align:"right" });
+
+  y = Math.max(y, hasQr ? QRY+QR+14 : 0, 96) + 12;
+  doc.setDrawColor(226,232,240); doc.line(M,y,pageW-M,y); y += 22;
+
+  const colW = (pageW - M*2 - 20)/2;
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+  doc.text("SUPPLIER", M, y);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+  doc.text(LPO_DATA.supplierName||"", M, y+15);
+
+  let ry = y;
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+  doc.text("DELIVER TO", M+colW+20, ry);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+  ry += 15;
+  const addrLines = doc.splitTextToSize(LPO_DATA.deliveryAddress || "As advised by FDH Procurement", colW);
+  doc.text(addrLines, M+colW+20, ry); ry += addrLines.length * 12;
+  if(LPO_DATA.deliveryDateRequired){ ry += 4; doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(90,100,112); doc.text("Required by: " + new Date(LPO_DATA.deliveryDateRequired).toLocaleDateString(), M+colW+20, ry); }
+
+  y += 40;
+  doc.autoTable({
+    startY: y,
+    head: [["#","Item Description","Qty","Unit Price (MWK)","Line Total (MWK)"]],
+    body: LPO_LINES.map((ln,i) => [ String(i+1), ln.itemDescription||"", String(Number(ln.quantity)||0), (Number(ln.unitPrice)||0).toFixed(2), (Number(ln.lineTotal)||(Number(ln.quantity)||0)*(Number(ln.unitPrice)||0)).toFixed(2) ]),
+    theme:"grid", margin:{left:M,right:M},
+    styles:{fontSize:9,cellPadding:6,lineColor:[226,232,240],textColor:[28,39,51]},
+    headStyles:{fillColor:[0,83,155],textColor:255,fontStyle:"bold",fontSize:8.5},
+    columnStyles:{0:{cellWidth:26,halign:"center"},2:{cellWidth:46,halign:"right"},3:{cellWidth:96,halign:"right"},4:{cellWidth:104,halign:"right"}}
+  });
+  y = doc.lastAutoTable.finalY + 14;
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(0,83,155);
+  doc.text("ORDER TOTAL:", pageW - M - 150, y, { align:"right" });
+  doc.setFontSize(13);
+  doc.text(invMoney(LPO_DATA.totalAmount), pageW - M, y, { align:"right" });
+  y += 26;
+
+  const addBlock = (label, text) => {
+    if(!text) return;
+    if(y > doc.internal.pageSize.getHeight() - 120){ doc.addPage(); y = 60; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+    doc.text(label.toUpperCase(), M, y); y += 13;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(28,39,51);
+    const lines = doc.splitTextToSize(text, pageW - M*2);
+    doc.text(lines, M, y); y += lines.length*11 + 16;
+  };
+  addBlock("Payment Terms", LPO_DATA.paymentTerms);
+  addBlock("Terms and Conditions", LPO_DATA.terms);
+
+  const pages = doc.internal.getNumberOfPages();
+  for(let p=1;p<=pages;p++){
+    doc.setPage(p);
+    const h = doc.internal.pageSize.getHeight();
+    doc.setFontSize(7.5); doc.setTextColor(140,150,162);
+    doc.text(BUYER.name + " · Operion Procure", M, h-24);
+    doc.text("Page " + p + " of " + pages, pageW-M, h-24, { align:"right" });
+  }
+  doc.save((LPO_DATA.lpoNumber || "purchase-order") + ".pdf");
+});
+
+/* ---------------- Native Receipt screen ---------------- *//* ---------------- Native Receipt screen ---------------- */
 document.getElementById("receiptBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
 
 const BUYER = {
