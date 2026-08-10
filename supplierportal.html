@@ -107,7 +107,12 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .q-table th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#fafbfd}
 .q-table tr:last-child td{border-bottom:none}
 .q-table td.num,.q-table th.num{text-align:right;font-variant-numeric:tabular-nums}
-.q-table input[type=number]{width:100%;max-width:140px;padding:9px 11px;border:1.5px solid var(--line);border-radius:7px;font-size:14px;text-align:right;font-family:inherit;transition:border-color .15s}
+.q-table{table-layout:fixed}
+.q-table th:nth-child(1),.q-table td:nth-child(1){width:auto}
+.q-table th:nth-child(2),.q-table td:nth-child(2){width:70px}
+.q-table th:nth-child(3),.q-table td:nth-child(3){width:150px}
+.q-table th:nth-child(4),.q-table td:nth-child(4){width:130px}
+.q-table input[type=number]{width:100%;min-width:120px;padding:10px 12px;border:1.5px solid var(--line);border-radius:7px;font-size:14.5px;text-align:right;font-family:inherit;transition:border-color .15s;box-sizing:border-box}
 .q-table input:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.10)}
 .q-grand{display:flex;justify-content:flex-end;align-items:baseline;gap:14px;margin-top:16px;padding-top:16px;border-top:2px solid var(--fdh-gold-soft)}
 .q-grand .amt{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--fdh-blue)}
@@ -306,20 +311,24 @@ h1,h2{font-family:'Lora',Georgia,serif}
   <div class="detail-topbar"><button class="back-btn" id="receiptBackBtn">← Back to Dashboard</button><span class="dt-title">Payment Receipt</span></div>
   <div style="overflow-y:auto;height:calc(100vh - 65px)"><div class="q-wrap">
     <div id="receiptLoading" class="loading">Loading…</div>
-    <div id="receiptContent" style="display:none" class="q-card">
-      <h2>Payment Confirmation</h2>
-      <div class="q-meta-grid">
-        <div><div class="k">Invoice Reference</div><div class="v" id="rcpt-invref">—</div></div>
-        <div><div class="k">Your Invoice Number</div><div class="v" id="rcpt-suppliernum">—</div></div>
-        <div><div class="k">Payment Date</div><div class="v" id="rcpt-date">—</div></div>
-        <div><div class="k">Payment Reference</div><div class="v" id="rcpt-ref">—</div></div>
-        <div><div class="k">Payment Method</div><div class="v" id="rcpt-method">—</div></div>
-        <div><div class="k">Amount Paid</div><div class="v" id="rcpt-amount">—</div></div>
+    <div id="receiptContent" style="display:none">
+      <div class="q-card">
+        <h2>Payment Confirmation</h2>
+        <div class="q-meta-grid">
+          <div><div class="k">Invoice Reference</div><div class="v" id="rcpt-invref">—</div></div>
+          <div><div class="k">Your Invoice Number</div><div class="v" id="rcpt-suppliernum">—</div></div>
+          <div><div class="k">Payment Date</div><div class="v" id="rcpt-date">—</div></div>
+          <div><div class="k">Payment Reference</div><div class="v" id="rcpt-ref">—</div></div>
+          <div><div class="k">Payment Method</div><div class="v" id="rcpt-method">—</div></div>
+          <div><div class="k">Amount Paid</div><div class="v" id="rcpt-amount">—</div></div>
+        </div>
       </div>
+      <div class="q-submit-bar"><button class="btn" id="rcpt-downloadBtn" style="width:100%">⬇ Download Receipt (PDF)</button></div>
     </div>
   </div></div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 // ==== CONFIG — paste your three deployed flow URLs here ====
 const CREATE_ACCOUNT_FLOW_URL = "https://b2b6fd73de3fe8a39420ca82b47685.00.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/14/workflows/faa11e94c50c4822a60e8e1e447de21a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CVjOEgktbDg0QFzD-Gjokzl_BOBfZCZ4_LZIA70gcy0";
@@ -894,10 +903,69 @@ async function openReceiptScreen(token){
 
     document.getElementById("receiptLoading").style.display = "none";
     document.getElementById("receiptContent").style.display = "block";
+    LAST_RECEIPT = data;
   }catch(e){
     document.getElementById("receiptLoading").textContent = e.message || "Failed to load.";
   }
 }
+
+let LAST_RECEIPT = null;
+
+document.getElementById("rcpt-downloadBtn").addEventListener("click", () => {
+  if(!LAST_RECEIPT) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 50;
+  let y = 60;
+
+  // Header band
+  doc.setFillColor(0, 83, 155);
+  doc.rect(0, 0, pageW, 90, "F");
+  doc.setFillColor(201, 162, 39);
+  doc.rect(0, 90, pageW, 4, "F");
+  doc.setTextColor(255,255,255);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+  doc.text("FDH Financial Holdings", margin, 42);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10.5);
+  doc.text("Payment Receipt Confirmation", margin, 62);
+
+  y = 130;
+  doc.setTextColor(28, 39, 51);
+  const row = (label, value) => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+    doc.setTextColor(106,118,131);
+    doc.text(label.toUpperCase(), margin, y);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(12.5);
+    doc.setTextColor(28,39,51);
+    doc.text(String(value || "—"), margin, y + 16);
+    y += 42;
+  };
+
+  row("Supplier", LAST_RECEIPT.supplierName);
+  row("Invoice Reference", LAST_RECEIPT.invoiceReference);
+  row("Your Invoice Number", LAST_RECEIPT.supplierInvoiceNumber);
+  row("Payment Date", LAST_RECEIPT.paymentDate ? new Date(LAST_RECEIPT.paymentDate).toLocaleDateString() : "—");
+  row("Payment Reference", LAST_RECEIPT.paymentReference);
+  row("Payment Method", document.getElementById("rcpt-method").textContent);
+
+  doc.setDrawColor(232, 217, 160); doc.setLineWidth(1.5);
+  doc.line(margin, y, pageW - margin, y);
+  y += 30;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+  doc.setTextColor(106,118,131);
+  doc.text("AMOUNT PAID", margin, y);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(22);
+  doc.setTextColor(0, 83, 155);
+  doc.text(document.getElementById("rcpt-amount").textContent, margin, y + 28);
+
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
+  doc.setTextColor(106,118,131);
+  doc.text("This is a system-generated receipt from the FDH Operion Procure system.", margin, 800);
+
+  const filename = "Receipt_" + (LAST_RECEIPT.invoiceReference || "Payment") + ".pdf";
+  doc.save(filename);
+});
 
 /* ---------------- Router: decide which screen to show on load ---------------- */
 (function boot(){
