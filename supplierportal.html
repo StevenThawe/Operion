@@ -56,6 +56,12 @@
 .loading{text-align:center;padding:60px 20px;color:var(--muted)}
 
 .screen{display:none} .screen.active{display:block}
+.detail-topbar{background:#fff;border-bottom:3px solid var(--fdh-gold);padding:14px 20px;display:flex;align-items:center;gap:14px}
+.back-btn{font-size:13px;font-weight:700;color:var(--fdh-blue);background:none;border:1px solid var(--line);border-radius:7px;padding:8px 14px;cursor:pointer;flex:0 0 auto}
+.back-btn:hover{background:var(--bg)}
+.detail-topbar .dt-title{font-size:14.5px;font-weight:700;color:var(--fdh-blue-dark)}
+.detail-frame-wrap{height:calc(100vh - 65px)}
+.detail-frame-wrap iframe{width:100%;height:100%;border:none;display:block}
 </style></head>
 <body>
 
@@ -116,6 +122,15 @@
     </div>
     <div id="loadingRoot" class="loading">Loading your portal…</div>
   </div>
+</div>
+
+<!-- ============ SCREEN: Detail (embedded) ============ -->
+<div class="screen" id="screen-detail">
+  <div class="detail-topbar">
+    <button class="back-btn" id="detailBackBtn">← Back to Dashboard</button>
+    <span class="dt-title" id="detailTitle"></span>
+  </div>
+  <div class="detail-frame-wrap"><iframe id="detailFrame" title="Document detail"></iframe></div>
 </div>
 
 <script>
@@ -239,13 +254,37 @@ function itemRow(item){
   const badge = item.status === "submitted"
     ? '<span class="badge submitted">' + (item.type === "receipt" ? "Paid" : item.type === "lpo" ? "Acknowledged" : "Submitted") + '</span>'
     : '<span class="badge pending">' + (PENDING_BADGE[item.type] || "Pending") + '</span>';
-  const action = item.status === "submitted"
-    ? '<a class="view" href="' + item.url + '">View Details</a>'
-    : '<a class="act" href="' + item.url + '">' + (PENDING_LABELS[item.type] || "View") + '</a>';
+  const label = item.status === "submitted" ? "View Details" : (PENDING_LABELS[item.type] || "View");
+  const cls = item.status === "submitted" ? "view" : "act";
+  const action = '<button class="' + cls + '" data-url="' + item.url.replace(/"/g,"&quot;") + '" data-title="' + item.title.replace(/"/g,"&quot;") + '" style="border:none;font-family:inherit">' + label + '</button>';
   return '<div class="item"><div class="icon">' + icon + '</div>' +
     '<div class="info"><div class="title">' + item.title + '</div>' +
     '<div class="meta">' + item.meta + '</div></div>' + badge + action + '</div>';
 }
+
+// Opens a document inside the portal itself via iframe - the top-level URL
+// never changes, so the supplier is never "navigated away" from the portal,
+// even though the embedded page is the same proven, already-working
+// submission/view page used elsewhere in the system.
+function openDetail(url, title){
+  document.getElementById("detailTitle").textContent = title;
+  document.getElementById("detailFrame").src = url;
+  showScreen("screen-detail");
+}
+
+document.getElementById("detailBackBtn").addEventListener("click", () => {
+  document.getElementById("detailFrame").src = "about:blank";
+  showScreen("screen-dashboard");
+});
+
+// Event delegation: item buttons are re-rendered on every filter/tab change,
+// so listeners are attached once on the container rather than per-button.
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".act, .view");
+  if(!btn || !btn.hasAttribute("data-url")) return;
+  e.preventDefault();
+  openDetail(btn.getAttribute("data-url"), btn.getAttribute("data-title"));
+});
 
 function renderItems(){
   const filtered = typeFilter === "all" ? LAST_ITEMS : LAST_ITEMS.filter(i => i.type === typeFilter);
