@@ -108,6 +108,8 @@
         <div class="filter-pill active" data-f="all">All</div>
         <div class="filter-pill" data-f="rfq">Quotations</div>
         <div class="filter-pill" data-f="invoice">Invoices</div>
+        <div class="filter-pill" data-f="lpo">Purchase Orders</div>
+        <div class="filter-pill" data-f="receipt">Receipts</div>
       </div>
       <div class="section active" id="sec-pending"><div class="loading">Loading…</div></div>
       <div class="section" id="sec-history"><div class="loading">Loading…</div></div>
@@ -228,15 +230,18 @@ document.querySelectorAll(".filter-pill").forEach(pill => {
   });
 });
 
+const ICONS = { rfq: "📋", invoice: "🧾", lpo: "📦", receipt: "💳" };
+const PENDING_LABELS = { rfq: "Submit Quote", invoice: "Submit Invoice", lpo: "Acknowledge Order" };
+const PENDING_BADGE = { rfq: "Pending", invoice: "Pending", lpo: "Awaiting Acknowledgement" };
+
 function itemRow(item){
-  const isRfq = item.type === "rfq";
-  const icon = isRfq ? "📋" : "🧾";
+  const icon = ICONS[item.type] || "📄";
   const badge = item.status === "submitted"
-    ? '<span class="badge submitted">Submitted</span>'
-    : '<span class="badge pending">Pending</span>';
+    ? '<span class="badge submitted">' + (item.type === "receipt" ? "Paid" : item.type === "lpo" ? "Acknowledged" : "Submitted") + '</span>'
+    : '<span class="badge pending">' + (PENDING_BADGE[item.type] || "Pending") + '</span>';
   const action = item.status === "submitted"
     ? '<a class="view" href="' + item.url + '">View Details</a>'
-    : '<a class="act" href="' + item.url + '">' + (isRfq ? "Submit Quote" : "Submit Invoice") + '</a>';
+    : '<a class="act" href="' + item.url + '">' + (PENDING_LABELS[item.type] || "View") + '</a>';
   return '<div class="item"><div class="icon">' + icon + '</div>' +
     '<div class="info"><div class="title">' + item.title + '</div>' +
     '<div class="meta">' + item.meta + '</div></div>' + badge + action + '</div>';
