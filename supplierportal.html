@@ -934,7 +934,8 @@ async function openReceiptScreen(token){
     document.getElementById("rcpt-suppliernum").textContent = data.supplierInvoiceNumber || "—";
     document.getElementById("rcpt-date").textContent = rcptDateOnly(data.paymentDate) || "—";
     document.getElementById("rcpt-ref").textContent = data.paymentReference || "—";
-    document.getElementById("rcpt-method").textContent = data.paymentMethod || "—";
+    const PAYMENT_METHOD_LABELS = { 930290000: "Bank Transfer", 930290001: "Cheque", 930290002: "Mobile Money" };
+    document.getElementById("rcpt-method").textContent = PAYMENT_METHOD_LABELS[data.paymentMethod] || data.paymentMethod || "—";
     document.getElementById("rcpt-supplier").textContent = data.supplierName || "—";
 
     document.getElementById("receiptLoading").style.display = "none";
