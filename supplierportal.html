@@ -1118,6 +1118,13 @@ document.getElementById("rcpt-downloadBtn").addEventListener("click", () => {
 
 /* ---------------- Router: decide which screen to show on load ---------------- */
 (function boot(){
+  const docType = params.get("type");
+  if(docType && INVITE_TOKEN){
+    if(docType==="rfq") return openQuoteScreen(INVITE_TOKEN);
+    if(docType==="invoice") return openInvoiceScreen(INVITE_TOKEN);
+    if(docType==="lpo") return openLpoScreen(INVITE_TOKEN);
+    if(docType==="receipt") return openReceiptScreen(INVITE_TOKEN);
+  }
   if(INVITE_TOKEN){
     showScreen("screen-create");
     return;
