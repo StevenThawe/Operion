@@ -880,12 +880,12 @@ document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
   y = Math.max(supplierEndY, ry) + 24;
   doc.autoTable({
     startY: y,
-    head: [["#","Item Description","Qty","Unit Price (MWK)","Line Total (MWK)"]],
-    body: LPO_LINES.map((ln,i) => [ String(i+1), ln.itemDescription||"", String(Number(ln.quantity)||0), (Number(ln.unitPrice)||0).toFixed(2), (Number(ln.lineTotal)||(Number(ln.quantity)||0)*(Number(ln.unitPrice)||0)).toFixed(2) ]),
+    head: [["#","Item Description","Qty","Unit Price","Line Total"]],
+    body: LPO_LINES.map((ln,i) => [ String(i+1), ln.itemDescription||"", String(Number(ln.quantity)||0), invMoney(ln.unitPrice), invMoney(Number(ln.lineTotal)||(Number(ln.quantity)||0)*(Number(ln.unitPrice)||0)) ]),
     theme:"grid", margin:{left:M,right:M},
-    styles:{fontSize:9,cellPadding:6,lineColor:[226,232,240],textColor:[28,39,51]},
+    styles:{fontSize:8.5,cellPadding:6,lineColor:[226,232,240],textColor:[28,39,51]},
     headStyles:{fillColor:[0,83,155],textColor:255,fontStyle:"bold",fontSize:8.5},
-    columnStyles:{0:{cellWidth:26,halign:"center"},2:{cellWidth:46,halign:"right"},3:{cellWidth:96,halign:"right"},4:{cellWidth:104,halign:"right"}}
+    columnStyles:{0:{cellWidth:24,halign:"center"},2:{cellWidth:40,halign:"right"},3:{cellWidth:118,halign:"right"},4:{cellWidth:128,halign:"right"}}
   });
   y = doc.lastAutoTable.finalY + 14;
   doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(0,83,155);
