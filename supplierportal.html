@@ -263,6 +263,12 @@ h1,h2{font-family:'Lora',Georgia,serif}
       <div class="q-card"><h2>Your Invoice Details</h2>
         <div class="q-field"><label>Invoice Number <span style="color:var(--err)">*</span></label><input type="text" id="inv-number"></div>
         <div class="q-field"><label>Invoice Date <span style="color:var(--err)">*</span></label><input type="date" id="inv-date"></div>
+        <div class="q-field">
+          <label>Attach Your Invoice Document <span style="color:var(--err)">*</span></label>
+          <input type="file" id="inv-attachment" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+          <div class="hint" style="font-size:12px;color:var(--muted);margin-top:4px">PDF or image of your signed invoice. Required, max 8 MB.</div>
+          <div id="inv-filename" style="font-size:13px;color:var(--fdh-blue);font-weight:600;margin-top:6px"></div>
+        </div>
         <div class="q-field"><label>Notes</label><textarea id="inv-notes" rows="3"></textarea></div>
       </div>
       <div class="q-submit-bar"><button class="btn" id="inv-submitBtn" style="width:100%">Submit Invoice</button></div>
@@ -674,9 +680,26 @@ document.getElementById("q-submitBtn").addEventListener("click", async () => {
   }
 });
 /* ---------------- Native Invoice screen ---------------- */
-let INV_TOKEN = null, INV_LINES = [];
+let INV_TOKEN = null, INV_LINES = [], INV_ATTACHMENT = null;
 function invMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 document.getElementById("invoiceBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
+
+document.getElementById("inv-attachment").addEventListener("change", function(){
+  var file = this.files && this.files[0];
+  if(!file){ INV_ATTACHMENT = null; document.getElementById("inv-filename").textContent = ""; return; }
+  if(file.size > 8*1024*1024){
+    document.getElementById("inv-filename").textContent = "";
+    var b = document.getElementById("invoiceRootMsg");
+    b.className = "q-msg err"; b.textContent = "That file is larger than 8 MB. Please attach a smaller file."; b.style.display = "block";
+    this.value = ""; INV_ATTACHMENT = null; return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(){
+    INV_ATTACHMENT = { name: file.name, contentBase64: String(reader.result).split(",")[1] };
+    document.getElementById("inv-filename").textContent = "Attached: " + file.name;
+  };
+  reader.readAsDataURL(file);
+});
 function pick(obj, keys){ for(const k of keys){ if(obj[k] != null) return obj[k]; } return null; }
 function invRenderLines(){
   const body = document.getElementById("inv-lines-body");
@@ -714,6 +737,7 @@ async function openInvoiceScreen(token){
       if(data.submittedInvoiceNumber) document.getElementById("inv-number").value = data.submittedInvoiceNumber;
       if(data.submittedInvoiceDate) document.getElementById("inv-date").value = String(data.submittedInvoiceDate).slice(0,10);
       if(data.submittedNotes) document.getElementById("inv-notes").value = data.submittedNotes;
+      document.getElementById("inv-filename").textContent = "Document attached with your submission.";
       const banner = document.getElementById("invoiceRootMsg");
       banner.className = "q-msg ok";
       banner.textContent = "You have already submitted an invoice for this delivery. Shown below for your records.";
@@ -730,7 +754,12 @@ document.getElementById("inv-submitBtn").addEventListener("click", async () => {
   const invoiceNumber = document.getElementById("inv-number").value.trim();
   const invoiceDate = document.getElementById("inv-date").value;
   if(!invoiceNumber || !invoiceDate){
-    banner.className = "q-msg err"; banner.textContent = "Invoice number and date are required."; return;
+    banner.className = "q-msg err"; banner.textContent = "Invoice number and date are required."; banner.style.display = "block";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  if(!INV_ATTACHMENT){
+    banner.className = "q-msg err"; banner.textContent = "Please attach your invoice document — it is required."; banner.style.display = "block";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
   }
   const lineData = INV_LINES.map(ln => ({
     grnLineId: pick(ln, ["grnLineId","id"]),
@@ -745,7 +774,9 @@ document.getElementById("inv-submitBtn").addEventListener("click", async () => {
       token: INV_TOKEN, invoiceNumber, invoiceDate,
       invoiceAmount: Math.round(invoiceAmount),
       notes: document.getElementById("inv-notes").value || "",
-      lines: lineData
+      lines: lineData,
+      attachmentName: INV_ATTACHMENT.name,
+      attachmentBase64: INV_ATTACHMENT.contentBase64
     };
     const res = await fetch(INVOICE_SUBMIT_FLOW_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
     if(!res.ok) throw new Error("Submission failed (" + res.status + ").");
