@@ -963,7 +963,7 @@ document.getElementById("lpo-pdfBtn").addEventListener("click", async () => {
         // Scaled to fit within a max box, preserving the image's real aspect
         // ratio - a fixed box distorted/clipped signatures with proportions
         // that didn'''t match it.
-        var fitted = await fitImageBox(LPO_DATA.approverSignatureBase64, 200, 110);
+        var fitted = await fitImageBox(LPO_DATA.approverSignatureBase64, 260, 140);
         if(fitted){
           doc.addImage(fitted.dataUrl, "PNG", M, y, fitted.width, fitted.height);
           y += fitted.height + 8;
