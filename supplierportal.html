@@ -954,9 +954,11 @@ document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
         // jsPDF's own getImageProperties reads the real pixel dimensions
         // synchronously - no Image()/onload race condition, no guessing.
         var props = doc.getImageProperties(sigDataUrl);
-        var maxW = 260, maxH = 140;
-        var ratio = Math.min(maxW / props.width, maxH / props.height);
-        var sigW = props.width * ratio, sigH = props.height * ratio;
+        // Fixed target width per request (300-400px range), height scaled
+        // proportionally from whatever the stored image'''s actual aspect
+        // ratio is, so it isn'''t stretched/distorted further.
+        var sigW = 350;
+        var sigH = props.width > 0 ? sigW * (props.height / props.width) : 90;
         doc.addImage(sigDataUrl, "PNG", M, y, sigW, sigH);
         y += sigH + 8;
       }catch(sigErr){ console.warn("Could not render signature image:", sigErr); y += 8; }
