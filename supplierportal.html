@@ -935,6 +935,37 @@ document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
   };
   addBlock("Payment Terms", LPO_DATA.paymentTerms);
   addBlock("Terms and Conditions", LPO_DATA.terms);
+
+  // Approved By block - signature, name, and position of whoever approved
+  // the final level of this order's approval chain.
+  if(LPO_DATA.approverSignatureBase64 || LPO_DATA.approverName){
+    if(y > doc.internal.pageSize.getHeight() - 140){ doc.addPage(); y = 60; }
+    y += 10;
+    doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 24;
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+    doc.text("APPROVED BY", M, y); y += 16;
+
+    if(LPO_DATA.approverSignatureBase64){
+      try{
+        var sigData = LPO_DATA.approverSignatureBase64;
+        var sigPrefix = sigData.indexOf("data:image") === 0 ? "" : "data:image/png;base64,";
+        doc.addImage(sigPrefix + sigData, "PNG", M, y, 130, 45);
+      }catch(sigErr){ console.warn("Could not render signature image:", sigErr); }
+      y += 52;
+    } else {
+      y += 8;
+    }
+
+    doc.setDrawColor(180,190,200); doc.line(M, y, M + 160, y); y += 14;
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+    doc.text(LPO_DATA.approverName || "—", M, y); y += 13;
+
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+    doc.text(LPO_DATA.approverPosition || "", M, y); y += 20;
+  }
+
   const pages = doc.internal.getNumberOfPages();
   for(let p=1;p<=pages;p++){
     doc.setPage(p);
