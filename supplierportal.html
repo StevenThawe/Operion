@@ -125,6 +125,8 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .rcpt-hero p{margin:0;opacity:.9;font-size:14px}
 .rcpt-stamp{text-align:center;color:var(--ok);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:var(--ok-bg);border:1px solid #b7e4cb;border-radius:20px;padding:6px 18px;margin:0 auto 14px;display:block;width:fit-content}
 .rcpt-amt{font-size:30px;font-weight:800;color:var(--ok);text-align:center;margin:6px 0;font-family:'Lora',serif}
+.terms-footer{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.6;white-space:pre-wrap}
+.terms-footer .terms-heading{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--fdh-blue);margin-bottom:8px;display:block}
 </style></head>
 <body>
 <!-- ============ SCREEN: Create Account ============ -->
@@ -237,6 +239,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
             <div class="q-filelist" id="q-filelist"></div>
           </div>
         </div>
+        <div id="q-terms-footer" class="terms-footer" style="display:none"></div>
         <div class="q-submit-bar"><button class="btn" id="q-submitBtn" style="width:100%">Submit Quotation</button></div>
       </div>
     </div>
@@ -271,6 +274,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
         </div>
         <div class="q-field"><label>Notes</label><textarea id="inv-notes" rows="3"></textarea></div>
       </div>
+      <div id="inv-terms-footer" class="terms-footer" style="display:none"></div>
       <div class="q-submit-bar"><button class="btn" id="inv-submitBtn" style="width:100%">Submit Invoice</button></div>
     </div>
   </div></div>
@@ -299,6 +303,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
         <div class="q-field"><label>Payment Terms</label><div class="q-wraptext" id="lpo-paymentterms">—</div></div>
         <div class="q-field"><label>Terms &amp; Conditions</label><div class="q-wraptext" id="lpo-terms">—</div></div>
       </div>
+      <div id="lpo-terms-footer" class="terms-footer" style="display:none"></div>
       <div class="q-submit-bar" style="display:flex;gap:12px">
         <button class="btn" id="lpo-ackBtn" style="flex:1">Acknowledge Order</button>
         <button class="btn" id="lpo-pdfBtn" style="flex:1;background:#fff;color:var(--fdh-blue);border:1.5px solid var(--fdh-blue)">Download PDF</button>
@@ -326,6 +331,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
             <div><div class="k">Supplier</div><div class="v" id="rcpt-supplier">—</div></div>
           </div>
         </div>
+        <div id="rcpt-terms-footer" class="terms-footer" style="display:none"></div>
         <div class="q-submit-bar"><button class="btn" id="rcpt-downloadBtn" style="width:100%">Download Receipt (PDF)</button></div>
       </div>
     </div>
@@ -535,6 +541,19 @@ function startClock(){
 }
 /* ---------------- Native Quote screen ---------------- */
 let Q_TOKEN = null, Q_LINES = [], Q_ATTACHED_FILE = null;
+// Shows a terms-and-conditions footer above a screen's action buttons if
+// text is available for that document; hides the block entirely if not,
+// rather than showing an empty box.
+function renderTermsFooter(elementId, termsText){
+  var el = document.getElementById(elementId);
+  if(!el) return;
+  if(termsText && termsText.trim()){
+    el.innerHTML = '<span class="terms-heading">Terms &amp; Conditions</span>' + termsText;
+    el.style.display = "block";
+  } else {
+    el.style.display = "none";
+  }
+}
 function qMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 document.getElementById("quoteBackBtn").addEventListener("click", () => { showScreen("screen-dashboard"); });
 document.getElementById("q-dropzone").addEventListener("click", () => document.getElementById("q-files").click());
@@ -614,6 +633,7 @@ async function openQuoteScreen(token){
     qRenderLines();
     document.getElementById("quoteLoading").style.display = "none";
     document.getElementById("quoteContent").style.display = "block";
+    renderTermsFooter("q-terms-footer", data.terms);
     if(data.alreadySubmitted){
       try{
         if(Array.isArray(data.submittedLines) && data.submittedLines.length){
@@ -733,6 +753,7 @@ async function openInvoiceScreen(token){
     invRenderLines();
     document.getElementById("invoiceLoading").style.display = "none";
     document.getElementById("invoiceContent").style.display = "block";
+    renderTermsFooter("inv-terms-footer", data.terms);
     if(data.alreadySubmitted){
       if(data.submittedInvoiceNumber) document.getElementById("inv-number").value = data.submittedInvoiceNumber;
       if(data.submittedInvoiceDate) document.getElementById("inv-date").value = String(data.submittedInvoiceDate).slice(0,10);
@@ -822,6 +843,7 @@ async function openLpoScreen(token){
     document.getElementById("lpo-grandtotal").textContent = invMoney(data.totalAmount || grand);
     document.getElementById("lpoLoading").style.display = "none";
     document.getElementById("lpoContent").style.display = "block";
+    renderTermsFooter("lpo-terms-footer", data.terms);
     if(data.acknowledgedOn){
       document.getElementById("lpoRootMsg").className = "q-msg ok";
       document.getElementById("lpoRootMsg").textContent = "Acknowledged on " + new Date(data.acknowledgedOn).toLocaleString() + ".";
@@ -1015,6 +1037,7 @@ async function openReceiptScreen(token){
     document.getElementById("rcpt-supplier").textContent = data.supplierName || "—";
     document.getElementById("receiptLoading").style.display = "none";
     document.getElementById("receiptContent").style.display = "block";
+    renderTermsFooter("rcpt-terms-footer", data.terms);
   }catch(e){
     document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + (e.message || "Failed to load.") + '</div>';
   }
@@ -1063,35 +1086,3 @@ document.getElementById("rcpt-downloadBtn").addEventListener("click", () => {
   });
   y += 20;
   doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(140,150,162);
-  doc.text("This receipt confirms payment has been made in full for the invoice referenced above.", M, y);
-  y += 12;
-  doc.text("Please retain this document for your records.", M, y);
-  const h = doc.internal.pageSize.getHeight();
-  doc.setFontSize(7.5); doc.setTextColor(140,150,162);
-  doc.text(BUYER.name + " · Operion Procure", M, h - 24);
-  doc.save((document.getElementById("rcpt-invref").textContent || "payment-receipt") + "-receipt.pdf");
-});
-/* ---------------- Router: decide which screen to show on load ---------------- */
-(function boot(){
-  const docType = params.get("type");
-  if(docType && INVITE_TOKEN){
-    if(docType==="rfq") return openQuoteScreen(INVITE_TOKEN);
-    if(docType==="invoice") return openInvoiceScreen(INVITE_TOKEN);
-    if(docType==="lpo") return openLpoScreen(INVITE_TOKEN);
-    if(docType==="receipt") return openReceiptScreen(INVITE_TOKEN);
-  }
-  if(INVITE_TOKEN){
-    showScreen("screen-create");
-    return;
-  }
-  const supplierId = sessionStorage.getItem("fdho_supplierId");
-  const sessionToken = sessionStorage.getItem("fdho_sessionToken");
-  if(supplierId && sessionToken){
-    showScreen("screen-dashboard");
-    loadDashboard();
-    return;
-  }
-  showScreen("screen-login");
-})();
-</script>
-</body></html>
