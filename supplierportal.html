@@ -759,7 +759,7 @@ async function openInvoiceScreen(token){
       document.getElementById("inv-filename").textContent = "Document attached with your submission.";
       const banner = document.getElementById("invoiceRootMsg");
       banner.className = "q-msg ok";
-      banner.textContent = "You have already submitted an invoice for this delivery. Shown below for your records.";
+      banner.innerHTML = "🔒 <strong>This invoice has already been submitted and can no longer be edited.</strong><br>Shown below for your records.";
       document.getElementById("inv-submitBtn").style.display = "none";
       document.querySelectorAll("#invoiceContent input, #invoiceContent textarea").forEach(el => el.disabled = true);
     }
@@ -844,7 +844,7 @@ async function openLpoScreen(token){
     renderTermsFooter("lpo-terms-footer", data.terms);
     if(data.acknowledgedOn){
       document.getElementById("lpoRootMsg").className = "q-msg ok";
-      document.getElementById("lpoRootMsg").textContent = "Acknowledged on " + new Date(data.acknowledgedOn).toLocaleString() + ".";
+      document.getElementById("lpoRootMsg").innerHTML = "🔒 <strong>This order has already been acknowledged.</strong><br>Acknowledged on " + new Date(data.acknowledgedOn).toLocaleString() + ".";
       document.getElementById("lpo-ackBtn").style.display = "none";
     }
   }catch(e){
