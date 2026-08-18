@@ -217,11 +217,6 @@ h1,h2{font-family:'Lora',Georgia,serif}
             <div><div class="k">Deadline</div><div class="v" id="q-deadline">—</div></div>
           </div>
         </div>
-        <div class="q-card" id="q-termscard" style="display:none">
-          <h2>Terms &amp; Requirements</h2>
-          <div style="margin-bottom:14px"><div class="q-meta-grid .k" style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Terms and Conditions</div><div class="q-wraptext" id="q-terms"></div></div>
-          <div id="q-deliveryblock"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Delivery Requirements</div><div class="q-wraptext" id="q-delivery"></div></div>
-        </div>
         <div class="q-card">
           <h2>Item Pricing</h2>
           <table class="q-table"><thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">Unit Price (MWK)</th><th class="num">Line Total</th></tr></thead>
@@ -239,7 +234,11 @@ h1,h2{font-family:'Lora',Georgia,serif}
             <div class="q-filelist" id="q-filelist"></div>
           </div>
         </div>
-        <div id="q-terms-footer" class="terms-footer" style="display:none"></div>
+        <div class="q-card" id="q-termscard" style="display:none">
+          <h2>Terms &amp; Requirements</h2>
+          <div style="margin-bottom:14px"><div class="q-meta-grid .k" style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Terms and Conditions</div><div class="q-wraptext" id="q-terms"></div></div>
+          <div id="q-deliveryblock"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Delivery Requirements</div><div class="q-wraptext" id="q-delivery"></div></div>
+        </div>
         <div class="q-submit-bar"><button class="btn" id="q-submitBtn" style="width:100%">Submit Quotation</button></div>
       </div>
     </div>
@@ -633,7 +632,6 @@ async function openQuoteScreen(token){
     qRenderLines();
     document.getElementById("quoteLoading").style.display = "none";
     document.getElementById("quoteContent").style.display = "block";
-    renderTermsFooter("q-terms-footer", data.terms);
     if(data.alreadySubmitted){
       try{
         if(Array.isArray(data.submittedLines) && data.submittedLines.length){
