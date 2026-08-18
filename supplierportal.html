@@ -543,6 +543,17 @@ let Q_TOKEN = null, Q_LINES = [], Q_ATTACHED_FILE = null;
 // Shows a terms-and-conditions footer above a screen's action buttons if
 // text is available for that document; hides the block entirely if not,
 // rather than showing an empty box.
+// Establishes a real session from whatever document-fetch response just
+// returned supplierId/sessionToken - this is what makes "Back to Dashboard"
+// work when arriving via an email link rather than a normal login, since a
+// session token now genuinely exists in sessionStorage from that point on.
+function establishSessionFromResponse(data){
+  if(data && data.supplierId && data.sessionToken){
+    sessionStorage.setItem("fdho_supplierId", data.supplierId);
+    sessionStorage.setItem("fdho_sessionToken", data.sessionToken);
+    sessionStorage.setItem("fdho_supplierName", data.supplierName || "");
+  }
+}
 function renderTermsFooter(elementId, termsText){
   var el = document.getElementById(elementId);
   if(!el) return;
@@ -615,6 +626,7 @@ async function openQuoteScreen(token){
     if(!res.ok) throw new Error("Could not load the RFQ (" + res.status + ").");
     const data = await res.json();
     if(data.error){ document.getElementById("quoteLoading").innerHTML = data.error; return; }
+    establishSessionFromResponse(data);
     document.getElementById("q-rfqno").textContent = data.rfqNumber || "—";
     document.getElementById("q-subject").textContent = data.subject || "—";
     document.getElementById("quoteTopTitle").textContent = data.subject || "Submit Quotation";
@@ -740,9 +752,8 @@ async function openInvoiceScreen(token){
   document.getElementById("invoiceRootMsg").className = "q-msg";
   try{
     const sep = INVOICE_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
-    const res = await fetch(INVOICE_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
-    if(!res.ok) throw new Error("Could not load this delivery (" + res.status + ").");
     const data = await res.json();
+    establishSessionFromResponse(data);
     document.getElementById("inv-grn").textContent = data.grnNumber || "—";
     document.getElementById("inv-lpo").textContent = data.lpoNumber || "—";
     document.getElementById("inv-received").textContent = data.receivedDate ? new Date(data.receivedDate).toLocaleDateString() : "—";
@@ -822,6 +833,7 @@ async function openLpoScreen(token){
     if(!res.ok) throw new Error("Could not load this order (" + res.status + ").");
     const data = await res.json();
     if(data.error){ document.getElementById("lpoLoading").textContent = data.error; return; }
+    establishSessionFromResponse(data);
     LPO_DATA = data;
     document.getElementById("lpo-number").textContent = data.lpoNumber || "—";
     document.getElementById("lpoTopTitle").textContent = data.lpoNumber || "Purchase Order";
@@ -1024,6 +1036,7 @@ async function openReceiptScreen(token){
     if(!res.ok) throw new Error("Could not load this receipt (" + res.status + ").");
     const data = await res.json();
     if(data.error){ document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + data.error + '</div>'; return; }
+    establishSessionFromResponse(data);
     LAST_RECEIPT = data;
     document.getElementById("rcpt-amount").textContent = invMoney(data.amountApplied);
     document.getElementById("rcpt-invref").textContent = data.invoiceReference || "—";
