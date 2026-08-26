@@ -213,9 +213,14 @@ h1,h2{font-family:'Lora',Georgia,serif}
           <h2>RFQ Details</h2>
           <div class="q-meta-grid">
             <div><div class="k">RFQ Number</div><div class="v" id="q-rfqno">—</div></div>
-            <div><div class="k">Subject</div><div class="v" id="q-subject">—</div></div>
+            <div><div class="k">Invitation Sent On</div><div class="v" id="q-invitationsent">—</div></div>
             <div><div class="k">Deadline</div><div class="v" id="q-deadline">—</div></div>
           </div>
+        </div>
+        <div class="q-card">
+          <h2>Details</h2>
+          <div class="q-field"><div class="k" style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px">RFQ Title</div><div class="v" id="q-rfqtitle" style="font-size:16px;font-weight:700;color:var(--ink)">—</div></div>
+          <div class="q-field" style="margin-bottom:0"><div class="k" style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px">RFQ Description</div><div class="q-wraptext" id="q-rfqdescription">—</div></div>
         </div>
         <div class="q-card">
           <h2>Item Pricing</h2>
@@ -225,8 +230,9 @@ h1,h2{font-family:'Lora',Georgia,serif}
         </div>
         <div class="q-card">
           <h2>Additional Information</h2>
-          <div class="q-field"><label>Quote Validity (days)</label><input type="number" id="q-validity" min="0" placeholder="e.g. 30"></div>
-          <div class="q-field"><label>Notes / Comments</label><textarea id="q-notes" rows="3"></textarea></div>
+          <div class="q-field"><label>Expected Delivery Date <span style="color:var(--err)">*</span></label><input type="date" id="q-deliverydate"></div>
+          <div class="q-field"><label>Quote Validity (days) <span style="color:var(--err)">*</span></label><input type="number" id="q-validity" min="0" placeholder="e.g. 30"></div>
+          <div class="q-field"><label>Notes / Comments <span style="color:var(--err)">*</span></label><textarea id="q-notes" rows="3"></textarea></div>
           <div class="q-field">
             <label>Upload Quotation <span style="color:var(--err)">*</span></label>
             <div class="q-dropzone" id="q-dropzone">📎 Click to attach your quotation document</div>
@@ -628,8 +634,10 @@ async function openQuoteScreen(token){
     if(data.error){ document.getElementById("quoteLoading").innerHTML = data.error; return; }
     establishSessionFromResponse(data);
     document.getElementById("q-rfqno").textContent = data.rfqNumber || "—";
-    document.getElementById("q-subject").textContent = data.subject || "—";
-    document.getElementById("quoteTopTitle").textContent = data.subject || "Submit Quotation";
+    document.getElementById("q-invitationsent").textContent = data.invitationSentOn ? new Date(data.invitationSentOn).toLocaleDateString() : "—";
+    document.getElementById("q-rfqtitle").textContent = data.rfqTitle || "—";
+    document.getElementById("q-rfqdescription").textContent = data.rfqDescription || "—";
+    document.getElementById("quoteTopTitle").textContent = data.rfqTitle || data.subject || "Submit Quotation";
     if(data.deadline){
       const d = new Date(data.deadline);
       document.getElementById("q-deadline").textContent = d.toLocaleString();
@@ -656,6 +664,7 @@ async function openQuoteScreen(token){
           qRecalc();
         }
         if(data.submittedValidity != null) document.getElementById("q-validity").value = data.submittedValidity;
+        if(data.submittedDeliveryDate) document.getElementById("q-deliverydate").value = String(data.submittedDeliveryDate).slice(0,10);
         if(data.submittedNotes) document.getElementById("q-notes").value = data.submittedNotes;
         qLockForm("You have already submitted a quotation for this RFQ. Your submitted pricing is shown below for your records.", true);
       }catch(lockErr){ console.warn(lockErr); }
@@ -683,6 +692,21 @@ document.getElementById("q-submitBtn").addEventListener("click", async () => {
     banner.className = "q-msg err"; banner.textContent = "Please enter a unit price for every line item.";
     window.scrollTo({top:0, behavior:"smooth"}); return;
   }
+  const deliveryDate = document.getElementById("q-deliverydate").value;
+  const validity = document.getElementById("q-validity").value;
+  const notes = document.getElementById("q-notes").value.trim();
+  if(!deliveryDate){
+    banner.className = "q-msg err"; banner.textContent = "Please provide your expected delivery date.";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  if(!validity){
+    banner.className = "q-msg err"; banner.textContent = "Please provide your quote validity (days).";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  if(!notes){
+    banner.className = "q-msg err"; banner.textContent = "Please provide notes/comments with your quotation.";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
   if(!Q_ATTACHED_FILE){
     banner.className = "q-msg err"; banner.textContent = "Please attach your quotation document — it is required.";
     window.scrollTo({top:0, behavior:"smooth"}); return;
@@ -692,8 +716,9 @@ document.getElementById("q-submitBtn").addEventListener("click", async () => {
     const fileBase64 = await qFileToBase64(Q_ATTACHED_FILE);
     const payload = {
       token: Q_TOKEN,
-      validity: parseInt(document.getElementById("q-validity").value) || null,
-      notes: document.getElementById("q-notes").value || "",
+      deliveryDate: deliveryDate,
+      validity: parseInt(validity) || null,
+      notes: notes,
       lines: lineData,
       attachmentName: Q_ATTACHED_FILE.name,
       attachmentBase64: fileBase64
