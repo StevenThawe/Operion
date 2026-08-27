@@ -777,7 +777,9 @@ async function openInvoiceScreen(token){
   document.getElementById("invoiceRootMsg").className = "q-msg";
   try{
     const sep = INVOICE_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
-    const data = await res.json();
+const res = await fetch(INVOICE_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+if(!res.ok) throw new Error("Could not load the invoice (" + res.status + ").");
+const data = await res.json();
     establishSessionFromResponse(data);
     document.getElementById("inv-grn").textContent = data.grnNumber || "—";
     document.getElementById("inv-lpo").textContent = data.lpoNumber || "—";
