@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Portal — FDH Financial Holdings</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+:root{
+  --fdh-blue:#00539B; --fdh-blue-dark:#003D73; --fdh-gold:#C9A227; --fdh-gold-soft:#E8D9A0;
+  --ink:#1c2733; --muted:#6a7683; --line:#e2e8f0; --bg:#f4f7fa; --card:#fff;
+  --err:#c0392b; --err-bg:#fdeceb; --ok:#1a7f4b; --ok-bg:#e7f6ee; --warn:#b8860b; --warn-bg:#fff6e0;
+  --shadow-sm:0 1px 3px rgba(0,60,120,.06); --shadow-md:0 4px 16px rgba(0,60,120,.08); --shadow-lg:0 10px 34px rgba(0,60,120,.12);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+h1,h2{font-family:'Lora',Georgia,serif}
+::selection{background:rgba(0,83,155,.15)}
+/* ---- Auth screens ---- */
+.auth-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 20% 15%, #eaf1f9 0%, var(--bg) 55%)}
+.auth-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:36px;max-width:410px;width:100%;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.auth-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--fdh-gold),var(--fdh-gold-soft),var(--fdh-gold))}
+.brand{text-align:center;margin-bottom:26px}
+.brand img{height:40px;margin-bottom:12px}
+.brand h1{font-size:20px;margin:0;color:var(--fdh-blue-dark);font-weight:700}
+.brand p{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:7px;color:var(--ink);letter-spacing:.01em}
+.field input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:9px;font-size:15px;font-family:inherit;transition:border-color .15s,box-shadow .15s;background:#fbfcfe}
+.field input:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 4px rgba(0,83,155,.10);background:#fff}
+.hint{font-size:11.5px;color:var(--muted);margin-top:5px;line-height:1.4}
+.btn{background:var(--fdh-blue);color:#fff;border:none;border-radius:9px;padding:14px;font-size:15px;font-weight:700;width:100%;cursor:pointer;margin-top:6px;transition:background .15s,transform .1s;letter-spacing:.01em}
+.btn:hover{background:var(--fdh-blue-dark)} .btn:active{transform:scale(.99)} .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.msg{padding:12px 15px;border-radius:9px;font-size:13.5px;margin-bottom:18px;display:none;font-weight:600;line-height:1.4}
+.msg.err{background:var(--err-bg);color:var(--err);display:block;border:1px solid #f3c2bd}
+.msg.ok{background:var(--ok-bg);color:var(--ok);display:block;border:1px solid #b7e4cb}
+.auth-footer{text-align:center;margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.5}
+/* ---- Top bars ---- */
+.topbar,.detail-topbar{background:linear-gradient(180deg,#fff 0%,#fbfcfe 100%);border-bottom:1px solid var(--line);box-shadow:var(--shadow-sm);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:5}
+.topbar::after,.detail-topbar::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:3px;background:linear-gradient(90deg,var(--fdh-gold),var(--fdh-gold-soft),var(--fdh-gold))}
+.topbar .brand{display:flex;align-items:center;gap:14px;text-align:left;margin:0}
+.topbar img{height:34px}
+.topbar .brand-text strong{display:block;font-size:15.5px;color:var(--fdh-blue-dark);font-family:'Lora',serif;font-weight:700}
+.topbar .brand-text span{font-size:12px;color:var(--muted);font-weight:500}
+.logout{font-size:12.5px;font-weight:700;color:var(--fdh-blue);background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:9px 16px;cursor:pointer;transition:background .15s,border-color .15s}
+.logout:hover{background:var(--bg);border-color:var(--fdh-blue)}
+.detail-topbar{gap:16px}
+.back-btn{font-size:13px;font-weight:700;color:var(--fdh-blue);background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:9px 16px;cursor:pointer;flex:0 0 auto;transition:background .15s,border-color .15s}
+.back-btn:hover{background:var(--bg);border-color:var(--fdh-blue)}
+.detail-topbar .dt-title{font-size:15px;font-weight:700;color:var(--fdh-blue-dark);font-family:'Lora',serif}
+.detail-frame-wrap{height:calc(100vh - 68px)}
+.detail-frame-wrap iframe{width:100%;height:100%;border:none;display:block}
+/* ---- Dashboard ---- */
+.wrap{max-width:900px;margin:0 auto;padding:32px 28px 60px}
+.hello{font-size:26px;font-weight:700;margin:0 0 5px;color:var(--fdh-blue-dark);font-family:'Lora',serif}
+.hello-sub{font-size:13px;color:var(--muted);margin:0 0 28px;font-weight:500}
+/* Stat strip */
+.stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:28px;box-shadow:var(--shadow-sm)}
+.stat-tile{background:var(--card);padding:18px 20px}
+.stat-tile .label{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin-bottom:8px}
+.stat-tile .value{font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--fdh-blue)}
+.stat-tile .value.warn{color:var(--warn)}
+.stat-tile .rule{height:2px;width:26px;background:var(--fdh-gold);margin-top:9px;border-radius:2px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:2px solid var(--line)}
+.tab{padding:11px 18px;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+.tab:hover{color:var(--fdh-blue-dark)}
+.tab.active{color:var(--fdh-blue);border-bottom-color:var(--fdh-blue)}
+.section{display:none} .section.active{display:block}
+.filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.filter-pill{font-size:12.5px;font-weight:700;color:var(--muted);background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:7px 15px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.filter-pill.active{background:var(--fdh-blue);color:#fff;border-color:var(--fdh-blue)}
+.filter-pill:hover:not(.active){background:var(--bg);border-color:var(--fdh-blue)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow-sm);transition:box-shadow .15s,transform .15s}
+.item:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.item .icon{width:42px;height:42px;border-radius:10px;background:#eaf1f9;color:var(--fdh-blue);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto}
+.item .info{flex:1;min-width:0}
+.item .title{font-size:15px;font-weight:700;color:var(--ink)}
+.item .meta{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
+.badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:4px 11px;border-radius:20px;flex:0 0 auto;white-space:nowrap}
+.badge.pending{background:var(--warn-bg);color:var(--warn)}
+.badge.submitted{background:var(--ok-bg);color:var(--ok)}
+.item .act,.item .view{font-size:12.5px;font-weight:700;padding:10px 16px;border-radius:8px;text-decoration:none;flex:0 0 auto;cursor:pointer;transition:background .15s;border:none;font-family:inherit}
+.item .act{color:#fff;background:var(--fdh-blue)}
+.item .act:hover{background:var(--fdh-blue-dark)}
+.item .view{color:var(--fdh-blue);background:#eaf1f9}
+.item .view:hover{background:#dbe9f7}
+.empty{text-align:center;padding:60px 24px;color:var(--muted);font-size:13.5px;background:var(--card);border:1px dashed var(--line);border-radius:12px}
+.loading{text-align:center;padding:70px 24px;color:var(--muted);font-size:13.5px}
+.screen{display:none} .screen.active{display:block}
+/* ---- Document detail screens (Quote/Invoice/LPO/Receipt shared) ---- */
+.q-wrap{max-width:800px;margin:0 auto;padding:32px 28px 100px}
+.q-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow-sm)}
+.q-card h2{font-size:13px;margin:0 0 18px;color:var(--fdh-blue-dark);font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--fdh-gold);padding-bottom:10px;display:inline-block}
+.q-meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:18px}
+.q-meta-grid .k{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.q-meta-grid .v{font-size:15px;font-weight:700;margin-top:4px;color:var(--ink)}
+.q-wraptext{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13.5px;color:var(--ink);line-height:1.6}
+.q-table{width:100%;border-collapse:collapse}
+.q-table th,.q-table td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);font-size:13.5px;vertical-align:top}
+.q-table th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:#fafbfd}
+.q-table tr:last-child td{border-bottom:none}
+.q-table td.num,.q-table th.num{text-align:right;font-variant-numeric:tabular-nums}
+.q-table td.num,.q-table th.num{white-space:nowrap}
+.q-table input[type=number]{width:105px;padding:4px 2px;border:none;border-bottom:1.5px solid var(--line);border-radius:0;font-size:13.5px;font-family:inherit;text-align:right;background:transparent;transition:border-color .15s;box-sizing:border-box;color:var(--ink)}
+.q-table input[type=number]:focus{outline:none;border-bottom-color:var(--fdh-blue)}
+.q-table input[type=number]:disabled{border-bottom-color:transparent;color:var(--ink)}
+@media (max-width:600px){
+  .q-table{display:block;overflow-x:auto;white-space:nowrap}
+}
+.q-table input:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 3px rgba(0,83,155,.10)}
+.q-grand{display:flex;justify-content:flex-end;align-items:baseline;gap:14px;margin-top:16px;padding-top:16px;border-top:2px solid var(--fdh-gold-soft)}
+.q-grand .amt{font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--fdh-blue)}
+.q-field{margin-bottom:18px}
+.q-field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:7px;color:var(--ink)}
+.q-field input,.q-field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:8px;font-size:14.5px;font-family:inherit;background:#fbfcfe;transition:border-color .15s,box-shadow .15s}
+.q-field input:focus,.q-field textarea:focus{outline:none;border-color:var(--fdh-blue);box-shadow:0 0 0 4px rgba(0,83,155,.10);background:#fff}
+.q-dropzone{border:2px dashed var(--fdh-blue);border-radius:10px;padding:18px;text-align:center;color:var(--fdh-blue);font-size:13.5px;font-weight:600;cursor:pointer;background:#f5f9fd;transition:background .15s}
+.q-dropzone:hover{background:#eef5fc}
+.q-filelist{margin-top:10px;font-size:12.5px;color:var(--muted);font-weight:500}
+.q-submit-bar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(244,247,250,0) 0%,var(--bg) 30%);padding:20px 0 0}
+.q-submit-bar .btn{box-shadow:var(--shadow-md)}
+.q-msg{padding:13px 16px;border-radius:9px;font-size:13.5px;margin-bottom:18px;display:none;font-weight:600;line-height:1.4}
+.q-msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd}
+.q-msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b7e4cb}
+/* ---- Receipt (ported from receipt.html) ---- */
+.rcpt-hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px;margin:-32px -28px 24px}
+.rcpt-hero h1{margin:0 0 4px;font-size:22px;font-weight:600;font-family:'Lora',serif}
+.rcpt-hero p{margin:0;opacity:.9;font-size:14px}
+.rcpt-stamp{text-align:center;color:var(--ok);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;background:var(--ok-bg);border:1px solid #b7e4cb;border-radius:20px;padding:6px 18px;margin:0 auto 14px;display:block;width:fit-content}
+.rcpt-amt{font-size:30px;font-weight:800;color:var(--ok);text-align:center;margin:6px 0;font-family:'Lora',serif}
+.terms-footer{margin-top:28px;padding-top:18px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.6;white-space:pre-wrap}
+.terms-footer .terms-heading{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--fdh-blue);margin-bottom:8px;display:block}
+</style></head>
+<body>
+<!-- ============ SCREEN: Create Account ============ -->
+<div class="screen" id="screen-create">
+  <div class="auth-shell"><div class="auth-card">
+    <h1 style="font-size:19px;margin:0 0 4px;color:var(--fdh-blue-dark)">Create Your Account</h1>
+    <p style="margin:0 0 24px;font-size:13.5px;color:var(--muted)">Set up access to the FDH Supplier Portal.</p>
+    <div id="createBanner" class="msg"></div>
+    <div id="createFormArea">
+      <div class="field"><label>Username</label><input type="text" id="c-username" placeholder="Choose a username" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input type="password" id="c-password" placeholder="At least 8 characters" autocomplete="new-password"><div class="hint">Use a password you don't use elsewhere.</div></div>
+      <div class="field"><label>Confirm Password</label><input type="password" id="c-confirm" autocomplete="new-password"></div>
+      <button class="btn" id="createBtn">Create Account</button>
+    </div>
+  </div></div>
+</div>
+<!-- ============ SCREEN: Login ============ -->
+<div class="screen" id="screen-login">
+  <div class="auth-shell"><div class="auth-card">
+    <div class="brand">
+      <img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH" onerror="this.style.display='none'">
+      <h1>Supplier Portal</h1><p>Sign in to view your pending items</p>
+    </div>
+    <div id="loginBanner" class="msg"></div>
+    <div class="field"><label>Username</label><input type="text" id="l-username" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="l-password" autocomplete="current-password"></div>
+    <button class="btn" id="loginBtn">Sign In</button>
+    <div class="auth-footer">Access is by invitation only. Contact FDH Procurement if you need help.</div>
+  </div></div>
+</div>
+<!-- ============ SCREEN: Dashboard ============ -->
+<div class="screen" id="screen-dashboard">
+  <div class="topbar">
+    <div class="brand"><img src="https://www.fdh.co.mw/img/FDHLogo.webp" alt="FDH" onerror="this.style.display='none'">
+      <div class="brand-text"><strong>Supplier Portal</strong><span id="supplierNameLabel">—</span></div></div>
+    <button class="logout" id="logoutBtn">Sign Out</button>
+  </div>
+  <div class="wrap">
+    <div id="dashContent" style="display:none">
+      <h1 class="hello" id="helloHeading">Welcome back</h1>
+      <p class="hello-sub" id="helloClock">—</p>
+      <div class="stat-strip">
+        <div class="stat-tile"><div class="label">Pending Action</div><div class="value warn" id="statPending">—</div><div class="rule"></div></div>
+        <div class="stat-tile"><div class="label">Submitted</div><div class="value" id="statSubmitted">—</div><div class="rule"></div></div>
+        <div class="stat-tile"><div class="label">Quotations</div><div class="value" id="statRfq">—</div><div class="rule"></div></div>
+        <div class="stat-tile"><div class="label">Invoices</div><div class="value" id="statInvoice">—</div><div class="rule"></div></div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" data-t="pending">Pending Action</div>
+        <div class="tab" data-t="history">Submission History</div>
+      </div>
+      <div class="filters">
+        <div class="filter-pill active" data-f="all">All</div>
+        <div class="filter-pill" data-f="rfq">Quotations</div>
+        <div class="filter-pill" data-f="invoice">Invoices</div>
+        <div class="filter-pill" data-f="lpo">Purchase Orders</div>
+        <div class="filter-pill" data-f="receipt">Receipts</div>
+      </div>
+      <div class="section active" id="sec-pending"><div class="loading">Loading…</div></div>
+      <div class="section" id="sec-history"><div class="loading">Loading…</div></div>
+    </div>
+    <div id="loadingRoot" class="loading">Loading your portal…</div>
+  </div>
+</div>
+<!-- ============ SCREEN: Detail (embedded) ============ -->
+<div class="screen" id="screen-detail">
+  <div class="detail-topbar">
+    <button class="back-btn" id="detailBackBtn">← Back to Dashboard</button>
+    <span class="dt-title" id="detailTitle"></span>
+  </div>
+  <div class="detail-frame-wrap"><iframe id="detailFrame" title="Document detail"></iframe></div>
+</div>
+<div class="screen" id="screen-quote">
+  <div class="detail-topbar">
+    <button class="back-btn" id="quoteBackBtn">← Back to Dashboard</button>
+    <span class="dt-title" id="quoteTopTitle">Submit Quotation</span>
+  </div>
+  <div style="overflow-y:auto;height:calc(100vh - 65px)">
+    <div class="q-wrap">
+      <div id="quoteRootMsg" class="q-msg"></div>
+      <div id="quoteLoading" class="loading">Loading RFQ…</div>
+      <div id="quoteContent" style="display:none">
+        <div class="q-card">
+          <h2>RFQ Details</h2>
+          <div class="q-meta-grid">
+            <div><div class="k">RFQ Number</div><div class="v" id="q-rfqno">—</div></div>
+            <div><div class="k">Invitation Sent On</div><div class="v" id="q-invitationsent">—</div></div>
+            <div><div class="k">Deadline</div><div class="v" id="q-deadline">—</div></div>
+          </div>
+        </div>
+        <div class="q-card">
+          <h2>Details</h2>
+          <div class="q-field"><div class="k" style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px">RFQ Title</div><div class="v" id="q-rfqtitle" style="font-size:16px;font-weight:700;color:var(--ink)">—</div></div>
+          <div class="q-field" style="margin-bottom:0"><div class="k" style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px">RFQ Description</div><div class="q-wraptext" id="q-rfqdescription">—</div></div>
+        </div>
+        <div class="q-card">
+          <h2>Item Pricing</h2>
+          <table class="q-table"><thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">Unit Price (MWK)</th><th class="num">Line Total</th></tr></thead>
+          <tbody id="q-lines-body"></tbody></table>
+          <div class="q-grand">Total Quoted:&nbsp;<span class="amt" id="q-grandtotal">MWK 0.00</span></div>
+        </div>
+        <div class="q-card">
+          <h2>Additional Information</h2>
+          <div class="q-field"><label>Expected Delivery Date <span style="color:var(--err)">*</span></label><input type="date" id="q-deliverydate"></div>
+          <div class="q-field"><label>Quote Validity (days) <span style="color:var(--err)">*</span></label><input type="number" id="q-validity" min="0" placeholder="e.g. 30"></div>
+          <div class="q-field"><label>Notes / Comments <span style="color:var(--err)">*</span></label><textarea id="q-notes" rows="3"></textarea></div>
+          <div class="q-field">
+            <label>Upload Quotation <span style="color:var(--err)">*</span></label>
+            <div class="q-dropzone" id="q-dropzone">📎 Click to attach your quotation document</div>
+            <input type="file" id="q-files" style="display:none">
+            <div class="q-filelist" id="q-filelist"></div>
+          </div>
+        </div>
+        <div class="q-card" id="q-termscard" style="display:none">
+          <h2>Terms &amp; Requirements</h2>
+          <div style="margin-bottom:14px"><div class="q-meta-grid .k" style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Terms and Conditions</div><div class="q-wraptext" id="q-terms"></div></div>
+          <div id="q-deliveryblock"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Delivery Requirements</div><div class="q-wraptext" id="q-delivery"></div></div>
+        </div>
+        <div class="q-submit-bar"><button class="btn" id="q-submitBtn" style="width:100%">Submit Quotation</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="screen" id="screen-invoice">
+  <div class="detail-topbar"><button class="back-btn" id="invoiceBackBtn">← Back to Dashboard</button><span class="dt-title" id="invoiceTopTitle">Submit Invoice</span></div>
+  <div style="overflow-y:auto;height:calc(100vh - 65px)"><div class="q-wrap">
+    <div id="invoiceRootMsg" class="q-msg"></div>
+    <div id="invoiceLoading" class="loading">Loading…</div>
+    <div id="invoiceContent" style="display:none">
+      <div class="q-card"><h2>Delivery Reference</h2>
+        <div class="q-meta-grid">
+          <div><div class="k">GRN Number</div><div class="v" id="inv-grn">—</div></div>
+          <div><div class="k">LPO Number</div><div class="v" id="inv-lpo">—</div></div>
+          <div><div class="k">Received Date</div><div class="v" id="inv-received">—</div></div>
+        </div>
+      </div>
+      <div class="q-card"><h2>Line Items (Locked to Delivery)</h2>
+        <table class="q-table"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Line Total</th></tr></thead>
+        <tbody id="inv-lines-body"></tbody></table>
+        <div class="q-grand">Invoice Amount:&nbsp;<span class="amt" id="inv-grandtotal">MWK 0.00</span></div>
+      </div>
+      <div class="q-card"><h2>Your Invoice Details</h2>
+        <div class="q-field"><label>Invoice Number <span style="color:var(--err)">*</span></label><input type="text" id="inv-number"></div>
+        <div class="q-field"><label>Invoice Date <span style="color:var(--err)">*</span></label><input type="date" id="inv-date"></div>
+        <div class="q-field">
+          <label>Attach Your Invoice Document <span style="color:var(--err)">*</span></label>
+          <input type="file" id="inv-attachment" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+          <div class="hint" style="font-size:12px;color:var(--muted);margin-top:4px">PDF or image of your signed invoice. Required, max 8 MB.</div>
+          <div id="inv-filename" style="font-size:13px;color:var(--fdh-blue);font-weight:600;margin-top:6px"></div>
+        </div>
+        <div class="q-field"><label>Notes</label><textarea id="inv-notes" rows="3"></textarea></div>
+      </div>
+      <div id="inv-terms-footer" class="terms-footer" style="display:none"></div>
+      <div class="q-submit-bar"><button class="btn" id="inv-submitBtn" style="width:100%">Submit Invoice</button></div>
+    </div>
+  </div></div>
+</div>
+<div class="screen" id="screen-lpo">
+  <div class="detail-topbar"><button class="back-btn" id="lpoBackBtn">← Back to Dashboard</button><span class="dt-title" id="lpoTopTitle">Purchase Order</span></div>
+  <div style="overflow-y:auto;height:calc(100vh - 68px)"><div class="q-wrap">
+    <div id="lpoRootMsg" class="q-msg"></div>
+    <div id="lpoLoading" class="loading">Loading…</div>
+    <div id="lpoContent" style="display:none">
+      <div class="q-card"><h2>Order Details</h2>
+        <div class="q-meta-grid">
+          <div><div class="k">LPO Number</div><div class="v" id="lpo-number">—</div></div>
+          <div><div class="k">Order Date</div><div class="v" id="lpo-date">—</div></div>
+          <div><div class="k">Delivery Required By</div><div class="v" id="lpo-deliverydate">—</div></div>
+          <div><div class="k">Total Amount</div><div class="v" id="lpo-total">—</div></div>
+        </div>
+      </div>
+      <div class="q-card"><h2>Order Lines</h2>
+        <table class="q-table"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Line Total</th></tr></thead>
+        <tbody id="lpo-lines-body"></tbody></table>
+        <div class="q-grand">Order Total:&nbsp;<span class="amt" id="lpo-grandtotal">MWK 0.00</span></div>
+      </div>
+      <div class="q-card"><h2>Delivery &amp; Payment</h2>
+        <div class="q-field"><label>Delivery Address</label><div class="q-wraptext" id="lpo-address">—</div></div>
+        <div class="q-field"><label>Payment Terms</label><div class="q-wraptext" id="lpo-paymentterms">—</div></div>
+        <div class="q-field"><label>Terms &amp; Conditions</label><div class="q-wraptext" id="lpo-terms">—</div></div>
+      </div>
+      <div id="lpo-terms-footer" class="terms-footer" style="display:none"></div>
+      <div class="q-submit-bar" style="display:flex;gap:12px">
+        <button class="btn" id="lpo-ackBtn" style="flex:1">Acknowledge Order</button>
+        <button class="btn" id="lpo-pdfBtn" style="flex:1;background:#fff;color:var(--fdh-blue);border:1.5px solid var(--fdh-blue)">Download PDF</button>
+      </div>
+    </div>
+  </div></div>
+</div>
+<div id="qrhost" style="position:absolute;left:-9999px;top:-9999px"></div>
+<div class="screen" id="screen-receipt">
+  <div class="detail-topbar"><button class="back-btn" id="receiptBackBtn">← Back to Dashboard</button><span class="dt-title">Payment Receipt</span></div>
+  <div style="overflow-y:auto;height:calc(100vh - 68px)">
+    
+    <div class="q-wrap">
+      <div id="receiptLoading" class="loading">Loading receipt details…</div>
+      <div id="receiptContent" style="display:none">
+        <div class="q-card">
+          <span class="rcpt-stamp">✓ Paid in Full</span>
+          <div class="rcpt-amt" id="rcpt-amount">MWK 0.00</div>
+          <div class="q-meta-grid" style="margin-top:18px">
+            <div><div class="k">Invoice Reference</div><div class="v" id="rcpt-invref">—</div></div>
+            <div><div class="k">Your Invoice Number</div><div class="v" id="rcpt-suppliernum">—</div></div>
+            <div><div class="k">Payment Date</div><div class="v" id="rcpt-date">—</div></div>
+            <div><div class="k">Payment Reference</div><div class="v" id="rcpt-ref">—</div></div>
+            <div><div class="k">Payment Method</div><div class="v" id="rcpt-method">—</div></div>
+            <div><div class="k">Supplier</div><div class="v" id="rcpt-supplier">—</div></div>
+          </div>
+        </div>
+        <div id="rcpt-terms-footer" class="terms-footer" style="display:none"></div>
+        <div class="q-submit-bar"><button class="btn" id="rcpt-downloadBtn" style="width:100%">Download Receipt (PDF)</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+// =============================================================
+// ENVIRONMENT CONFIG — UAT (operion-uat.crm.dynamics.com)
+// Paste the HTTP trigger URLs copied from the UAT flows.
+// POST = JSON body | GET = token passed on query string
+// =============================================================
+const PORTAL_ENV = "UAT";
+const FLOW_URLS = {
+  CREATE_ACCOUNT: "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/07/workflows/b2987794335141a4b75ecf2b66ba2e39/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=9rAelvi_9NSbd5bUZjTYr62--nix5KJ9XuqEJByTzUE", // POST
+  LOGIN:          "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/27/workflows/5db1503dec4942bfa1fd428624f7aa52/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=s9XiVjuBPRneUueKRFE02EZ1wro1fe5pUIZ0bnZx-SY", // POST
+  MY_ITEMS:       "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/28/workflows/0a3a7d46e8304b19ae44bd2f962f2016/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Jpie2kD6Q5NMvWtv-c9LepomQgZe8tWDNNIyCdm0cJo", // POST
+  RFQ_FETCH:      "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/08/workflows/8ad401bdfce64b87988ccdbbb9a6b80a/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=P0mkIW8Plk8LDfN5d69td9d2tdHIHuHW1d7zgBKJyJs", // GET
+  RFQ_SUBMIT:     "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/05/workflows/fc81db8368ce4725bfb493a763986b1f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1RZjRsinhl-znAq_jpPs5Rh78oqyyb5ScWwfT-bMceE", // POST
+  INVOICE_FETCH:  "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/12/workflows/5c3fcdffa5c743b7b5e74658e481a303/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ew3Jo21S9eUjhfZIr55g-S3eeEqnzfMNdvJMB8WlZMc", // GET
+  INVOICE_SUBMIT: "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/11/workflows/86a80bbce6ee4a209fc539de6ca2ba71/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CB7nVQugYFDlD03-niROU95icfuuzNOe26zBD38DSxA", // POST
+  LPO_FETCH:      "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/11/workflows/4a447ad820134615ab40ae47daeaf994/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=WAhI_2j0LX-4AY3jqdNtzkJEje5b19BFi1TazxiMQhQ", // GET
+  LPO_ACK:        "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/18/workflows/aea40eb989be49e0b36d4295804db12d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=03PRnT4fsCaHA8gPLsG1BYtSSUnARBPtq4FNaN_3yOc", // POST
+  RECEIPT_FETCH:  "https://29ed81f61837ecd1981557c8a03a7c.03.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/04/workflows/0c4fe260563948589e235735ffed85fd/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QxJ4aDIOcf52r37G9TdkB0eLrEQ4F34-zz0yDVc-qLA"  // GET
+};
+const CRM_BASE_URL = "https://operion-uat.crm.dynamics.com";
+const CRM_APP_ID   = ""; // optional: UAT Operion app ID; blank = opens in default app
+
+// Fail loudly if any value is missing, instead of silently calling a dead or Dev endpoint
+(function validateConfig(){
+  const missing = Object.keys(FLOW_URLS).filter(k => !/^https:\/\//.test(FLOW_URLS[k]));
+  if (missing.length) {
+    console.error("Supplier Portal config incomplete:", missing);
+    document.addEventListener("DOMContentLoaded", () => {
+      document.body.innerHTML = '<div style="padding:48px;text-align:center;font-family:Inter,sans-serif">Supplier Portal configuration is incomplete (' + missing.join(", ") + '). Please contact FDH Procurement.</div>';
+    });
+  }
+  if (PORTAL_ENV !== "PROD") document.title = "[" + PORTAL_ENV + "] " + document.title;
+})();
+
+const CREATE_ACCOUNT_FLOW_URL = FLOW_URLS.CREATE_ACCOUNT;
+const LOGIN_FLOW_URL          = FLOW_URLS.LOGIN;
+const MY_ITEMS_FLOW_URL       = FLOW_URLS.MY_ITEMS;
+const RFQ_FETCH_FLOW_URL      = FLOW_URLS.RFQ_FETCH;
+const RFQ_SUBMIT_FLOW_URL     = FLOW_URLS.RFQ_SUBMIT;
+const INVOICE_FETCH_FLOW_URL  = FLOW_URLS.INVOICE_FETCH;
+const INVOICE_SUBMIT_FLOW_URL = FLOW_URLS.INVOICE_SUBMIT;
+const LPO_FETCH_FLOW_URL      = FLOW_URLS.LPO_FETCH;
+const LPO_ACK_FLOW_URL        = FLOW_URLS.LPO_ACK;
+const RECEIPT_FETCH_FLOW_URL  = FLOW_URLS.RECEIPT_FETCH;
+// =============================================================
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+async function sha256(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+/* ---------------- Create Account ---------------- */
+const params = new URLSearchParams(location.search);
+const INVITE_TOKEN = params.get("token");
+document.getElementById("createBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("createBtn");
+  const banner = document.getElementById("createBanner");
+  const username = document.getElementById("c-username").value.trim();
+  const pw = document.getElementById("c-password").value;
+  const confirm = document.getElementById("c-confirm").value;
+  if(!username){ banner.className="msg err"; banner.textContent="Please choose a username."; return; }
+  if(pw.length < 8){ banner.className="msg err"; banner.textContent="Password must be at least 8 characters."; return; }
+  if(pw !== confirm){ banner.className="msg err"; banner.textContent="Passwords do not match."; return; }
+  btn.disabled = true; btn.textContent = "Creating…";
+  try{
+    const passwordHash = await sha256(pw);
+    const res = await fetch(CREATE_ACCOUNT_FLOW_URL, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ token: INVITE_TOKEN, username, passwordHash })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error){ throw new Error(data.error || ("Request failed (" + res.status + ")")); }
+    document.getElementById("createFormArea").style.display = "none";
+    banner.className = "msg ok";
+    banner.textContent = "✓ Account created. Redirecting to sign in…";
+    setTimeout(() => { location.href = location.pathname; }, 1800); // drop ?token=, land on login
+  }catch(e){
+    banner.className = "msg err"; banner.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Create Account";
+  }
+});
+/* ---------------- Login ---------------- */
+async function doLogin(){
+  const btn = document.getElementById("loginBtn");
+  const banner = document.getElementById("loginBanner");
+  const username = document.getElementById("l-username").value.trim();
+  const pw = document.getElementById("l-password").value;
+  if(!username || !pw){ banner.className="msg err"; banner.textContent="Enter your username and password."; return; }
+  btn.disabled = true; btn.textContent = "Signing in…";
+  try{
+    const passwordHash = await sha256(pw);
+    const res = await fetch(LOGIN_FLOW_URL, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username, passwordHash })
+    });
+    const data = await res.json();
+    if(!res.ok || !data.success){ throw new Error(data.error || "Incorrect username or password."); }
+    sessionStorage.setItem("fdho_supplierId", data.supplierId);
+    sessionStorage.setItem("fdho_sessionToken", data.sessionToken);
+    sessionStorage.setItem("fdho_supplierName", data.supplierName || "");
+    showScreen("screen-dashboard");
+    loadDashboard();
+  }catch(e){
+    banner.className = "msg err"; banner.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Sign In";
+  }
+}
+document.getElementById("loginBtn").addEventListener("click", doLogin);
+document.getElementById("l-password").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
+/* ---------------- Dashboard ---------------- */
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  sessionStorage.clear();
+  showScreen("screen-login");
+});
+let typeFilter = "all";
+let LAST_ITEMS = [];
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("sec-" + tab.getAttribute("data-t")).classList.add("active");
+  });
+});
+document.querySelectorAll(".filter-pill").forEach(pill => {
+  pill.addEventListener("click", () => {
+    document.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    typeFilter = pill.getAttribute("data-f");
+    renderItems();
+  });
+});
+const ICONS = { rfq: "📋", invoice: "🧾", lpo: "📦", receipt: "💳" };
+const PENDING_LABELS = { rfq: "Submit Quote", invoice: "Submit Invoice", lpo: "Acknowledge Order" };
+const PENDING_BADGE = { rfq: "Pending", invoice: "Pending", lpo: "Awaiting Acknowledgement" };
+function itemRow(item){
+  const icon = ICONS[item.type] || "📄";
+  const badge = item.status === "submitted"
+    ? '<span class="badge submitted">' + (item.type === "receipt" ? "Paid" : item.type === "lpo" ? "Acknowledged" : "Submitted") + '</span>'
+    : '<span class="badge pending">' + (PENDING_BADGE[item.type] || "Pending") + '</span>';
+  const label = item.status === "submitted" ? "View Details" : (PENDING_LABELS[item.type] || "View");
+  const cls = item.status === "submitted" ? "view" : "act";
+  const action = '<button class="' + cls + '" data-url="' + item.url.replace(/"/g,"&quot;") + '" data-title="' + item.title.replace(/"/g,"&quot;") + '" data-type="' + item.type + '" style="border:none;font-family:inherit">' + label + '</button>';
+  return '<div class="item"><div class="icon">' + icon + '</div>' +
+    '<div class="info"><div class="title">' + item.title + '</div>' +
+    '<div class="meta">' + item.meta + '</div></div>' + badge + action + '</div>';
+}
+// Opens a document inside the portal itself via iframe - the top-level URL
+// never changes, so the supplier is never "navigated away" from the portal,
+// even though the embedded page is the same proven, already-working
+// submission/view page used elsewhere in the system.
+function openDetail(url, title, type){
+  var u = new URL(url);
+  var token = u.searchParams.get("token");
+  if(type === "rfq"){ openQuoteScreen(token); return; }
+  if(type === "invoice"){ openInvoiceScreen(token); return; }
+  if(type === "lpo"){ openLpoScreen(token); return; }
+  if(type === "receipt"){ openReceiptScreen(token); return; }
+  document.getElementById("detailTitle").textContent = title;
+  document.getElementById("detailFrame").src = url;
+  showScreen("screen-detail");
+}
+document.getElementById("detailBackBtn").addEventListener("click", () => {
+  document.getElementById("detailFrame").src = "about:blank";
+  showScreen("screen-dashboard");
+});
+// Event delegation: item buttons are re-rendered on every filter/tab change,
+// so listeners are attached once on the container rather than per-button.
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".act, .view");
+  if(!btn || !btn.hasAttribute("data-url")) return;
+  e.preventDefault();
+  openDetail(btn.getAttribute("data-url"), btn.getAttribute("data-title"), btn.getAttribute("data-type"));
+});
+function renderItems(){
+  const allPending = LAST_ITEMS.filter(i => i.status !== "submitted").length;
+  const allSubmitted = LAST_ITEMS.filter(i => i.status === "submitted").length;
+  const allRfq = LAST_ITEMS.filter(i => i.type === "rfq").length;
+  const allInvoice = LAST_ITEMS.filter(i => i.type === "invoice").length;
+  document.getElementById("statPending").textContent = allPending;
+  document.getElementById("statSubmitted").textContent = allSubmitted;
+  document.getElementById("statRfq").textContent = allRfq;
+  document.getElementById("statInvoice").textContent = allInvoice;
+  const filtered = typeFilter === "all" ? LAST_ITEMS : LAST_ITEMS.filter(i => i.type === typeFilter);
+  const pending = filtered.filter(i => i.status !== "submitted");
+  const history = filtered.filter(i => i.status === "submitted");
+  document.getElementById("sec-pending").innerHTML = pending.length
+    ? pending.map(itemRow).join("")
+    : '<div class="empty">Nothing pending right now. Check back after FDH invites you to a new RFQ or issues an LPO.</div>';
+  document.getElementById("sec-history").innerHTML = history.length
+    ? history.map(itemRow).join("")
+    : '<div class="empty">No submissions yet.</div>';
+}
+async function loadDashboard(){
+  const supplierId = sessionStorage.getItem("fdho_supplierId");
+  const sessionToken = sessionStorage.getItem("fdho_sessionToken");
+  const supplierName = sessionStorage.getItem("fdho_supplierName");
+  try{
+    const res = await fetch(MY_ITEMS_FLOW_URL, {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ supplierId, sessionToken })
+    });
+    const data = await res.json();
+    if(!res.ok || data.error){
+      if(data.sessionExpired){ sessionStorage.clear(); showScreen("screen-login"); return; }
+      throw new Error(data.error || ("Request failed (" + res.status + ")"));
+    }
+    document.getElementById("loadingRoot").style.display = "none";
+    document.getElementById("dashContent").style.display = "block";
+    const nameToShow = supplierName || data.supplierName || "";
+    document.getElementById("supplierNameLabel").textContent = nameToShow;
+    document.getElementById("helloHeading").textContent = "Welcome back, " + (nameToShow || "");
+    startClock();
+    LAST_ITEMS = data.items || [];
+    renderItems();
+  }catch(e){
+    document.getElementById("loadingRoot").innerHTML = '<div class="empty">Could not load your items: ' + e.message + '</div>';
+  }
+}
+function startClock(){
+  function tick(){
+    const now = new Date();
+    document.getElementById("helloClock").textContent = now.toLocaleDateString(undefined, { weekday:"long", year:"numeric", month:"long", day:"numeric" }) +
+      " · " + now.toLocaleTimeString(undefined, { hour:"2-digit", minute:"2-digit", second:"2-digit" });
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+/* ---------------- Native Quote screen ---------------- */
+let Q_TOKEN = null, Q_LINES = [], Q_ATTACHED_FILE = null;
+// Shows a terms-and-conditions footer above a screen's action buttons if
+// text is available for that document; hides the block entirely if not,
+// rather than showing an empty box.
+// Establishes a real session from whatever document-fetch response just
+// returned supplierId/sessionToken - this is what makes "Back to Dashboard"
+// work when arriving via an email link rather than a normal login, since a
+// session token now genuinely exists in sessionStorage from that point on.
+function establishSessionFromResponse(data){
+  if(data && data.supplierId && data.sessionToken){
+    sessionStorage.setItem("fdho_supplierId", data.supplierId);
+    sessionStorage.setItem("fdho_sessionToken", data.sessionToken);
+    sessionStorage.setItem("fdho_supplierName", data.supplierName || "");
+  }
+}
+function renderTermsFooter(elementId, termsText){
+  var el = document.getElementById(elementId);
+  if(!el) return;
+  if(termsText && termsText.trim()){
+    el.innerHTML = '<span class="terms-heading">Terms &amp; Conditions</span>' + termsText;
+    el.style.display = "block";
+  } else {
+    el.style.display = "none";
+  }
+}
+function qMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+document.getElementById("quoteBackBtn").addEventListener("click", () => { showScreen("screen-dashboard"); });
+document.getElementById("q-dropzone").addEventListener("click", () => document.getElementById("q-files").click());
+document.getElementById("q-files").addEventListener("change", (e) => {
+  Q_ATTACHED_FILE = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+  document.getElementById("q-filelist").textContent = Q_ATTACHED_FILE
+    ? "📎 " + Q_ATTACHED_FILE.name + " (" + Math.round(Q_ATTACHED_FILE.size/1024) + " KB)" : "";
+});
+function qRecalc(){
+  let grand = 0;
+  Q_LINES.forEach((ln, i) => {
+    const price = parseFloat(document.getElementById("qp"+i).value) || 0;
+    const t = price * (Number(ln.quantity)||0);
+    document.getElementById("qt"+i).textContent = qMoney(t);
+    grand += t;
+  });
+  document.getElementById("q-grandtotal").textContent = qMoney(grand);
+}
+function qRenderLines(){
+  const body = document.getElementById("q-lines-body");
+  body.innerHTML = Q_LINES.map((ln, i) => {
+    return '<tr><td>' + (ln.lineNumber||i+1) + '</td>' +
+      '<td>' + (ln.itemDescription||"") + (ln.specification ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + ln.specification + '</div>' : '') + '</td>' +
+      '<td class="num">' + (Number(ln.quantity)||0) + '</td>' +
+      '<td class="num"><input type="number" min="0" step="0.01" id="qp'+i+'" placeholder="0.00"></td>' +
+      '<td class="num" id="qt'+i+'">MWK 0.00</td></tr>';
+  }).join("");
+  Q_LINES.forEach((_, i) => document.getElementById("qp"+i).addEventListener("input", qRecalc));
+  qRecalc();
+}
+function qLockForm(msg, ok){
+  const b = document.getElementById("quoteRootMsg");
+  b.className = "q-msg " + (ok ? "ok" : "err");
+  b.innerHTML = "🔒 <strong>This quotation has already been submitted and can no longer be edited.</strong><br>" + msg;
+  document.getElementById("q-submitBtn").style.display = "none";
+  document.getElementById("q-dropzone").style.display = "none";
+  document.querySelectorAll("#quoteContent input, #quoteContent textarea").forEach(el => el.disabled = true);
+  Q_LINES.forEach((ln, i) => {
+    const input = document.getElementById("qp"+i);
+    if(!input) return;
+    const span = document.createElement("span");
+    span.textContent = input.value ? qMoney(input.value) : "—";
+    span.style.cssText = "font-size:13.5px;font-weight:400;color:var(--ink)";
+    input.replaceWith(span);
+  });
+}
+async function openQuoteScreen(token){
+  Q_TOKEN = token;
+  showScreen("screen-quote");
+  document.getElementById("quoteLoading").style.display = "block";
+  document.getElementById("quoteContent").style.display = "none";
+  document.getElementById("quoteRootMsg").className = "q-msg";
+  if(!token){
+    document.getElementById("quoteLoading").innerHTML = "This item is missing its reference token.";
+    return;
+  }
+  try{
+    const sep = RFQ_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
+    const res = await fetch(RFQ_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+    if(!res.ok) throw new Error("Could not load the RFQ (" + res.status + ").");
+    const data = await res.json();
+    if(data.error){ document.getElementById("quoteLoading").innerHTML = data.error; return; }
+    establishSessionFromResponse(data);
+    document.getElementById("q-rfqno").textContent = data.rfqNumber || "—";
+    document.getElementById("q-invitationsent").textContent = data.invitationSentOn ? new Date(data.invitationSentOn).toLocaleDateString() : "—";
+    document.getElementById("q-rfqtitle").textContent = data.rfqTitle || "—";
+    document.getElementById("q-rfqdescription").textContent = data.rfqDescription || "—";
+    document.getElementById("quoteTopTitle").textContent = data.rfqTitle || data.subject || "Submit Quotation";
+    if(data.deadline){
+      const d = new Date(data.deadline);
+      document.getElementById("q-deadline").textContent = d.toLocaleString();
+    } else document.getElementById("q-deadline").textContent = "Not specified";
+    const tc = (data.terms||"").trim(), dr = (data.deliveryRequirements||"").trim();
+    if(tc || dr){
+      document.getElementById("q-termscard").style.display = "block";
+      if(tc) document.getElementById("q-terms").textContent = tc;
+      if(dr) document.getElementById("q-delivery").textContent = dr;
+    }
+    Q_LINES = data.lines || [];
+    qRenderLines();
+    document.getElementById("quoteLoading").style.display = "none";
+    document.getElementById("quoteContent").style.display = "block";
+    if(data.alreadySubmitted){
+      try{
+        if(Array.isArray(data.submittedLines) && data.submittedLines.length){
+          const byLine = {};
+          data.submittedLines.forEach(sl => { if(sl && sl.rfqLineId) byLine[String(sl.rfqLineId).toLowerCase()] = sl; });
+          Q_LINES.forEach((ln, i) => {
+            const m = byLine[String(ln.rfqLineId||"").toLowerCase()];
+            if(m && m.unitPrice != null){ const el = document.getElementById("qp"+i); if(el) el.value = m.unitPrice; }
+          });
+          qRecalc();
+        }
+        if(data.submittedValidity != null) document.getElementById("q-validity").value = data.submittedValidity;
+        if(data.submittedDeliveryDate) document.getElementById("q-deliverydate").value = String(data.submittedDeliveryDate).slice(0,10);
+        if(data.submittedNotes) document.getElementById("q-notes").value = data.submittedNotes;
+        qLockForm("You have already submitted a quotation for this RFQ. Your submitted pricing is shown below for your records.", true);
+      }catch(lockErr){ console.warn(lockErr); }
+    }
+  }catch(e){
+    document.getElementById("quoteLoading").innerHTML = e.message || "Failed to load the RFQ.";
+  }
+}
+function qFileToBase64(file){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(",")[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+document.getElementById("q-submitBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("q-submitBtn");
+  const banner = document.getElementById("quoteRootMsg");
+  const lineData = Q_LINES.map((ln, i) => ({
+    rfqLineId: ln.rfqLineId, itemDescription: ln.itemDescription, quantity: ln.quantity,
+    unitPrice: parseFloat(document.getElementById("qp"+i).value) || 0
+  }));
+  if(lineData.some(l => l.unitPrice <= 0)){
+    banner.className = "q-msg err"; banner.textContent = "Please enter a unit price for every line item.";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  const deliveryDate = document.getElementById("q-deliverydate").value;
+  const validity = document.getElementById("q-validity").value;
+  const notes = document.getElementById("q-notes").value.trim();
+  if(!deliveryDate){
+    banner.className = "q-msg err"; banner.textContent = "Please provide your expected delivery date.";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  if(!validity){
+    banner.className = "q-msg err"; banner.textContent = "Please provide your quote validity (days).";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  if(!notes){
+    banner.className = "q-msg err"; banner.textContent = "Please provide notes/comments with your quotation.";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  if(!Q_ATTACHED_FILE){
+    banner.className = "q-msg err"; banner.textContent = "Please attach your quotation document — it is required.";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  btn.disabled = true; btn.textContent = "Submitting…";
+  try{
+    const fileBase64 = await qFileToBase64(Q_ATTACHED_FILE);
+    const payload = {
+      token: Q_TOKEN,
+      deliveryDate: deliveryDate,
+      validity: parseInt(validity) || null,
+      notes: notes,
+      lines: lineData,
+      attachmentName: Q_ATTACHED_FILE.name,
+      attachmentBase64: fileBase64
+    };
+    const res = await fetch(RFQ_SUBMIT_FLOW_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+    if(!res.ok) throw new Error("Submission failed (" + res.status + ").");
+    banner.className = "q-msg ok"; banner.textContent = "✓ Your quotation has been submitted successfully.";
+    document.querySelectorAll("#quoteContent input, #quoteContent textarea").forEach(el => el.disabled = true);
+    btn.style.display = "none";
+    window.scrollTo({top:0, behavior:"smooth"});
+  }catch(e){
+    banner.className = "q-msg err"; banner.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Submit Quotation";
+  }
+});
+/* ---------------- Native Invoice screen ---------------- */
+let INV_TOKEN = null, INV_LINES = [], INV_ATTACHMENT = null;
+function invMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+document.getElementById("invoiceBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
+
+document.getElementById("inv-attachment").addEventListener("change", function(){
+  var file = this.files && this.files[0];
+  if(!file){ INV_ATTACHMENT = null; document.getElementById("inv-filename").textContent = ""; return; }
+  if(file.size > 8*1024*1024){
+    document.getElementById("inv-filename").textContent = "";
+    var b = document.getElementById("invoiceRootMsg");
+    b.className = "q-msg err"; b.textContent = "That file is larger than 8 MB. Please attach a smaller file."; b.style.display = "block";
+    this.value = ""; INV_ATTACHMENT = null; return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(){
+    INV_ATTACHMENT = { name: file.name, contentBase64: String(reader.result).split(",")[1] };
+    document.getElementById("inv-filename").textContent = "Attached: " + file.name;
+  };
+  reader.readAsDataURL(file);
+});
+function pick(obj, keys){ for(const k of keys){ if(obj[k] != null) return obj[k]; } return null; }
+function invRenderLines(){
+  const body = document.getElementById("inv-lines-body");
+  let grand = 0;
+  body.innerHTML = INV_LINES.map(ln => {
+    const desc = pick(ln, ["itemDescription","description"]) || "";
+    const qty = pick(ln, ["acceptedQty","quantityBilled","quantityReceived","quantityAccepted","quantity"]) || 0;
+    const price = pick(ln, ["awardedPrice","unitPrice","awardedUnitPrice"]) || 0;
+    const total = Number(qty) * Number(price);
+    grand += total;
+    return '<tr><td>' + desc + '</td><td class="num">' + qty + '</td><td class="num">' + invMoney(price) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
+  }).join("");
+  document.getElementById("inv-grandtotal").textContent = invMoney(grand);
+}
+async function openInvoiceScreen(token){
+  INV_TOKEN = token;
+  showScreen("screen-invoice");
+  document.getElementById("invoiceLoading").style.display = "block";
+  document.getElementById("invoiceContent").style.display = "none";
+  document.getElementById("invoiceRootMsg").className = "q-msg";
+  try{
+    const sep = INVOICE_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
+const res = await fetch(INVOICE_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+if(!res.ok) throw new Error("Could not load the invoice (" + res.status + ").");
+const data = await res.json();
+    establishSessionFromResponse(data);
+    document.getElementById("inv-grn").textContent = data.grnNumber || "—";
+    document.getElementById("inv-lpo").textContent = data.lpoNumber || "—";
+    document.getElementById("inv-received").textContent = data.receivedDate ? new Date(data.receivedDate).toLocaleDateString() : "—";
+    document.getElementById("invoiceTopTitle").textContent = "Invoice for " + (data.grnNumber || "Delivery");
+    INV_LINES = data.lines || [];
+    invRenderLines();
+    document.getElementById("invoiceLoading").style.display = "none";
+    document.getElementById("invoiceContent").style.display = "block";
+    renderTermsFooter("inv-terms-footer", data.terms);
+    if(data.alreadySubmitted){
+      if(data.submittedInvoiceNumber) document.getElementById("inv-number").value = data.submittedInvoiceNumber;
+      if(data.submittedInvoiceDate) document.getElementById("inv-date").value = String(data.submittedInvoiceDate).slice(0,10);
+      if(data.submittedNotes) document.getElementById("inv-notes").value = data.submittedNotes;
+      document.getElementById("inv-filename").textContent = "Document attached with your submission.";
+      const banner = document.getElementById("invoiceRootMsg");
+      banner.className = "q-msg ok";
+      banner.innerHTML = "🔒 <strong>This invoice has already been submitted and can no longer be edited.</strong><br>Shown below for your records.";
+      document.getElementById("inv-submitBtn").style.display = "none";
+      document.querySelectorAll("#invoiceContent input, #invoiceContent textarea").forEach(el => el.disabled = true);
+    }
+  }catch(e){
+    document.getElementById("invoiceLoading").textContent = e.message || "Failed to load.";
+  }
+}
+document.getElementById("inv-submitBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("inv-submitBtn");
+  const banner = document.getElementById("invoiceRootMsg");
+  const invoiceNumber = document.getElementById("inv-number").value.trim();
+  const invoiceDate = document.getElementById("inv-date").value;
+  if(!invoiceNumber || !invoiceDate){
+    banner.className = "q-msg err"; banner.textContent = "Invoice number and date are required."; banner.style.display = "block";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  if(!INV_ATTACHMENT){
+    banner.className = "q-msg err"; banner.textContent = "Please attach your invoice document — it is required."; banner.style.display = "block";
+    window.scrollTo({top:0, behavior:"smooth"}); return;
+  }
+  const lineData = INV_LINES.map(ln => ({
+    grnLineId: pick(ln, ["grnLineId","id"]),
+    itemDescription: pick(ln, ["itemDescription","description"]) || "",
+    quantityBilled: Number(pick(ln, ["acceptedQty","quantityBilled","quantityReceived","quantityAccepted","quantity"])) || 0,
+    unitPrice: Number(pick(ln, ["awardedPrice","unitPrice","awardedUnitPrice"])) || 0
+  }));
+  const invoiceAmount = lineData.reduce((s,l) => s + (l.quantityBilled * l.unitPrice), 0);
+  btn.disabled = true; btn.textContent = "Submitting…";
+  try{
+    const payload = {
+      token: INV_TOKEN, invoiceNumber, invoiceDate,
+      invoiceAmount: Math.round(invoiceAmount),
+      notes: document.getElementById("inv-notes").value || "",
+      lines: lineData,
+      attachmentName: INV_ATTACHMENT.name,
+      attachmentBase64: INV_ATTACHMENT.contentBase64
+    };
+    const res = await fetch(INVOICE_SUBMIT_FLOW_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+    if(!res.ok) throw new Error("Submission failed (" + res.status + ").");
+    banner.className = "q-msg ok"; banner.textContent = "✓ Your invoice has been submitted successfully.";
+    document.querySelectorAll("#invoiceContent input, #invoiceContent textarea").forEach(el => el.disabled = true);
+    btn.style.display = "none";
+  }catch(e){
+    banner.className = "q-msg err"; banner.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Submit Invoice";
+  }
+});
+/* ---------------- Native LPO screen ---------------- */
+let LPO_TOKEN = null, LPO_DATA = null, LPO_LINES = [];
+document.getElementById("lpoBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
+async function openLpoScreen(token){
+  LPO_TOKEN = token;
+  showScreen("screen-lpo");
+  document.getElementById("lpoLoading").style.display = "block";
+  document.getElementById("lpoContent").style.display = "none";
+  document.getElementById("lpoRootMsg").className = "q-msg";
+  try{
+    const sep = LPO_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
+    const res = await fetch(LPO_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+    if(!res.ok) throw new Error("Could not load this order (" + res.status + ").");
+    const data = await res.json();
+    if(data.error){ document.getElementById("lpoLoading").textContent = data.error; return; }
+    establishSessionFromResponse(data);
+    LPO_DATA = data;
+    document.getElementById("lpo-number").textContent = data.lpoNumber || "—";
+    document.getElementById("lpoTopTitle").textContent = data.lpoNumber || "Purchase Order";
+    document.getElementById("lpo-date").textContent = data.orderDate ? new Date(data.orderDate).toLocaleDateString() : "—";
+    document.getElementById("lpo-deliverydate").textContent = data.deliveryDateRequired ? new Date(data.deliveryDateRequired).toLocaleDateString() : "—";
+    document.getElementById("lpo-total").textContent = invMoney(data.totalAmount);
+    document.getElementById("lpo-address").textContent = data.deliveryAddress || "—";
+    document.getElementById("lpo-paymentterms").textContent = data.paymentTerms || "—";
+    document.getElementById("lpo-terms").textContent = data.terms || "—";
+    LPO_LINES = data.lines || [];
+    let grand = 0;
+    document.getElementById("lpo-lines-body").innerHTML = LPO_LINES.map((ln,i) => {
+      const total = Number(ln.lineTotal) || (Number(ln.quantity)||0)*(Number(ln.unitPrice)||0);
+      grand += total;
+      return '<tr><td>' + (ln.itemDescription||"") + '</td><td class="num">' + (Number(ln.quantity)||0) + '</td><td class="num">' + invMoney(ln.unitPrice) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
+    }).join("");
+    document.getElementById("lpo-grandtotal").textContent = invMoney(data.totalAmount || grand);
+    document.getElementById("lpoLoading").style.display = "none";
+    document.getElementById("lpoContent").style.display = "block";
+    renderTermsFooter("lpo-terms-footer", data.terms);
+    if(data.acknowledgedOn){
+      document.getElementById("lpoRootMsg").className = "q-msg ok";
+      document.getElementById("lpoRootMsg").innerHTML = "🔒 <strong>This order has already been acknowledged.</strong><br>Acknowledged on " + new Date(data.acknowledgedOn).toLocaleString() + ".";
+      document.getElementById("lpo-ackBtn").style.display = "none";
+    }
+  }catch(e){
+    document.getElementById("lpoLoading").textContent = e.message || "Failed to load.";
+  }
+}
+document.getElementById("lpo-ackBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("lpo-ackBtn");
+  const banner = document.getElementById("lpoRootMsg");
+  btn.disabled = true; btn.textContent = "Acknowledging…";
+  try{
+    const res = await fetch(LPO_ACK_FLOW_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ token: LPO_TOKEN }) });
+    if(!res.ok) throw new Error("Could not acknowledge (" + res.status + ").");
+    banner.className = "q-msg ok"; banner.textContent = "✓ Order acknowledged.";
+    btn.style.display = "none";
+    loadDashboard();
+  }catch(e){
+    banner.className = "q-msg err"; banner.textContent = e.message;
+    btn.disabled = false; btn.textContent = "Acknowledge Order";
+  }
+});
+const CRM_RECORD_URL = CRM_BASE_URL + "/main.aspx?" + (CRM_APP_ID ? "appid=" + CRM_APP_ID + "&" : "") + "pagetype=entityrecord&etn=fdho_lpo&id=";
+function lpoQrDataUrl(text){
+  try{
+    const host = document.getElementById("qrhost");
+    host.innerHTML = "";
+    new QRCode(host, { text, width:256, height:256, correctLevel: QRCode.CorrectLevel.M });
+    const cvs = host.querySelector("canvas");
+    return cvs ? cvs.toDataURL("image/png") : null;
+  }catch(e){ return null; }
+}
+document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
+  if(!LPO_DATA) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"pt", format:"a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const M = 40; let y = 46;
+  doc.setFillColor(0,83,155); doc.rect(0,0,pageW,8,"F");
+  doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
+  const QR = 58, QRY = 32; let textX = M, hasQr = false;
+  if(LPO_DATA.lpoId){
+    const qr = lpoQrDataUrl(CRM_RECORD_URL + LPO_DATA.lpoId);
+    if(qr){ doc.addImage(qr,"PNG",M,QRY,QR,QR); doc.setFontSize(6); doc.setTextColor(150,158,168); doc.text("Scan for record", M, QRY+QR+7); textX = M+QR+12; hasQr = true; }
+  }
+  doc.setFont("helvetica","bold"); doc.setFontSize(14); doc.setTextColor(0,83,155);
+  doc.text(BUYER.name, textX, y); y += 16;
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(90,100,112);
+  BUYER.address.concat(BUYER.contact).forEach(l => { doc.text(l, textX, y); y += 10.5; });
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(28,39,51);
+  doc.text("LOCAL PURCHASE ORDER", pageW - M, 46, { align:"right" });
+  doc.setFontSize(9.5); doc.setFont("helvetica","normal"); doc.setTextColor(90,100,112);
+  doc.text("LPO No:", pageW - M - 92, 64, { align:"right" });
+  doc.text("Date:", pageW - M - 92, 78, { align:"right" });
+  doc.setFont("helvetica","bold"); doc.setTextColor(28,39,51);
+  doc.text(LPO_DATA.lpoNumber||"", pageW - M, 64, { align:"right" });
+  doc.text(LPO_DATA.orderDate ? new Date(LPO_DATA.orderDate).toLocaleDateString() : "-", pageW - M, 78, { align:"right" });
+  y = Math.max(y, hasQr ? QRY+QR+14 : 0, 96) + 12;
+  doc.setDrawColor(226,232,240); doc.line(M,y,pageW-M,y); y += 22;
+  const colW = (pageW - M*2 - 20)/2;
+  const blockStartY = y;
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+  doc.text("SUPPLIER", M, y);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+  const supplierLines = doc.splitTextToSize(LPO_DATA.supplierName || "", colW);
+  doc.text(supplierLines, M, y+15);
+  const supplierEndY = y + 15 + (supplierLines.length - 1) * 12;
+  let ry = blockStartY;
+  doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+  doc.text("DELIVER TO", M+colW+20, ry);
+  doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+  ry += 15;
+  const addrLines = doc.splitTextToSize(LPO_DATA.deliveryAddress || "As advised by FDH Procurement", colW);
+  doc.text(addrLines, M+colW+20, ry);
+  ry += addrLines.length * 12;
+  if(LPO_DATA.deliveryDateRequired){
+    ry += 4;
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+    doc.text("Required by: " + new Date(LPO_DATA.deliveryDateRequired).toLocaleDateString(), M+colW+20, ry);
+    ry += 12;
+  }
+  // Measures both columns' real bottom edge and starts the table below
+  // whichever is taller, instead of a fixed offset that assumed a short
+  // address - prevents the table drawing over unfinished text.
+  y = Math.max(supplierEndY, ry) + 24;
+  doc.autoTable({
+    startY: y,
+    head: [["#","Item Description","Qty","Unit Price","Line Total"]],
+    body: LPO_LINES.map((ln,i) => [ String(i+1), ln.itemDescription||"", String(Number(ln.quantity)||0), invMoney(ln.unitPrice), invMoney(Number(ln.lineTotal)||(Number(ln.quantity)||0)*(Number(ln.unitPrice)||0)) ]),
+    theme:"grid", margin:{left:M,right:M},
+    styles:{fontSize:8.5,cellPadding:6,lineColor:[226,232,240],textColor:[28,39,51]},
+    headStyles:{fillColor:[0,83,155],textColor:255,fontStyle:"bold",fontSize:8.5},
+    columnStyles:{0:{cellWidth:24,halign:"center"},2:{cellWidth:40,halign:"right"},3:{cellWidth:118,halign:"right"},4:{cellWidth:128,halign:"right"}}
+  });
+  y = doc.lastAutoTable.finalY + 14;
+  doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.setTextColor(0,83,155);
+  doc.text("ORDER TOTAL:", pageW - M - 150, y, { align:"right" });
+  doc.setFontSize(13);
+  doc.text(invMoney(LPO_DATA.totalAmount), pageW - M, y, { align:"right" });
+  y += 26;
+  const addBlock = (label, text) => {
+    if(!text) return;
+    if(y > doc.internal.pageSize.getHeight() - 120){ doc.addPage(); y = 60; }
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+    doc.text(label.toUpperCase(), M, y); y += 13;
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(28,39,51);
+    const lines = doc.splitTextToSize(text, pageW - M*2);
+    doc.text(lines, M, y); y += lines.length*11 + 16;
+  };
+  addBlock("Payment Terms", LPO_DATA.paymentTerms);
+  addBlock("Terms and Conditions", LPO_DATA.terms);
+
+  // Approved By block - signature, name, and position of whoever approved
+  // the final level of this order's approval chain.
+  if(LPO_DATA.approverSignatureBase64 || LPO_DATA.approverName){
+    if(y > doc.internal.pageSize.getHeight() - 140){ doc.addPage(); y = 60; }
+    y += 10;
+    doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 24;
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
+    doc.text("APPROVED BY", M, y); y += 16;
+
+    if(LPO_DATA.approverSignatureBase64){
+      try{
+        var sigData = LPO_DATA.approverSignatureBase64;
+        var sigPrefix = sigData.indexOf("data:image") === 0 ? "" : "data:image/png;base64,";
+        var sigDataUrl = sigPrefix + sigData;
+        // jsPDF's own getImageProperties reads the real pixel dimensions
+        // synchronously - no Image()/onload race condition, no guessing.
+        var props = doc.getImageProperties(sigDataUrl);
+        // Fixed target width per request (300-400px range), height scaled
+        // proportionally from whatever the stored image'''s actual aspect
+        // ratio is, so it isn'''t stretched/distorted further.
+        var sigW = 100; // ~1.4 inches wide, standard signature block size
+        var sigH = props.width > 0 ? sigW * (props.height / props.width) : 90;
+        doc.addImage(sigDataUrl, "PNG", M, y, sigW, sigH);
+        y += sigH + 8;
+      }catch(sigErr){ console.warn("Could not render signature image:", sigErr); y += 8; }
+    } else {
+      y += 8;
+    }
+
+    doc.setDrawColor(180,190,200); doc.line(M, y, M + 160, y); y += 14;
+
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(28,39,51);
+    doc.text(LPO_DATA.approverName || "—", M, y); y += 13;
+
+    doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+    doc.text(LPO_DATA.approverPosition || "", M, y); y += 20;
+  }
+
+  const pages = doc.internal.getNumberOfPages();
+  for(let p=1;p<=pages;p++){
+    doc.setPage(p);
+    const h = doc.internal.pageSize.getHeight();
+    doc.setFontSize(7.5); doc.setTextColor(140,150,162);
+    doc.text(BUYER.name + " · Operion Procure", M, h-24);
+    doc.text("Page " + p + " of " + pages, pageW-M, h-24, { align:"right" });
+  }
+  doc.save((LPO_DATA.lpoNumber || "purchase-order") + ".pdf");
+});
+/* ---------------- Native Receipt screen ---------------- */
+document.getElementById("receiptBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
+const BUYER = {
+  name: "FDH Financial Holdings Limited",
+  address: ["First Floor, Umoyo House", "Victoria Avenue", "P.O. Box 512", "Blantyre, Malawi"],
+  contact: ["Tel: (265) 111 820 219/397", "Fax: (265) 111 823 044"]
+};
+let LAST_RECEIPT = null;
+function rcptDateOnly(v){ if(!v) return ""; const d = new Date(v); return isNaN(d) ? "" : d.toLocaleDateString(); }
+async function openReceiptScreen(token){
+  showScreen("screen-receipt");
+  document.getElementById("receiptLoading").style.display = "block";
+  document.getElementById("receiptContent").style.display = "none";
+  try{
+    const sep = RECEIPT_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
+    const res = await fetch(RECEIPT_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+    if(!res.ok) throw new Error("Could not load this receipt (" + res.status + ").");
+    const data = await res.json();
+    if(data.error){ document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + data.error + '</div>'; return; }
+    establishSessionFromResponse(data);
+    LAST_RECEIPT = data;
+    document.getElementById("rcpt-amount").textContent = invMoney(data.amountApplied);
+    document.getElementById("rcpt-invref").textContent = data.invoiceReference || "—";
+    document.getElementById("rcpt-suppliernum").textContent = data.supplierInvoiceNumber || "—";
+    document.getElementById("rcpt-date").textContent = rcptDateOnly(data.paymentDate) || "—";
+    document.getElementById("rcpt-ref").textContent = data.paymentReference || "—";
+    const PAYMENT_METHOD_LABELS = { 930290000: "Bank Transfer", 930290001: "Cheque", 930290002: "Mobile Money" };
+    document.getElementById("rcpt-method").textContent = PAYMENT_METHOD_LABELS[data.paymentMethod] || data.paymentMethod || "—";
+    document.getElementById("rcpt-supplier").textContent = data.supplierName || "—";
+    document.getElementById("receiptLoading").style.display = "none";
+    document.getElementById("receiptContent").style.display = "block";
+    renderTermsFooter("rcpt-terms-footer", data.terms);
+  }catch(e){
+    document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + (e.message || "Failed to load.") + '</div>';
+  }
+}
+document.getElementById("rcpt-downloadBtn").addEventListener("click", () => {
+  if(!LAST_RECEIPT) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const M = 48;
+  let y = 50;
+  doc.setFillColor(0,83,155); doc.rect(0,0,pageW,8,"F");
+  doc.setFillColor(201,162,39); doc.rect(0,8,pageW,3,"F");
+  doc.setFont("helvetica","bold"); doc.setFontSize(16); doc.setTextColor(0,83,155);
+  doc.text(BUYER.name, M, y); y += 16;
+  doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
+  BUYER.address.concat(BUYER.contact).forEach(l => { doc.text(l, M, y); y += 11; });
+  doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(28,39,51);
+  doc.text("PAYMENT RECEIPT", pageW - M, 52, { align: "right" });
+  doc.setFontSize(10); doc.setFont("helvetica","normal"); doc.setTextColor(90,100,112);
+  doc.text("Issued: " + new Date().toLocaleDateString(), pageW - M, 70, { align: "right" });
+  y = Math.max(y, 100) + 16;
+  doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 30;
+  doc.setFont("helvetica","bold"); doc.setFontSize(26); doc.setTextColor(26,127,75);
+  doc.text("PAID IN FULL", pageW/2, y, { align: "center" });
+  y += 34;
+  doc.setFontSize(22); doc.setTextColor(0,83,155);
+  doc.text(String(document.getElementById("rcpt-amount").textContent), pageW/2, y, { align: "center" });
+  y += 44;
+  const rows = [
+    ["Invoice Reference", document.getElementById("rcpt-invref").textContent],
+    ["Your Invoice Number", document.getElementById("rcpt-suppliernum").textContent],
+    ["Supplier", document.getElementById("rcpt-supplier").textContent],
+    ["Payment Date", document.getElementById("rcpt-date").textContent],
+    ["Payment Reference", document.getElementById("rcpt-ref").textContent],
+    ["Payment Method", document.getElementById("rcpt-method").textContent]
+  ];
+  doc.setFontSize(10);
+  rows.forEach(([label, value]) => {
+    doc.setFont("helvetica","bold"); doc.setTextColor(90,100,112);
+    doc.text(label, M, y);
+    doc.setFont("helvetica","normal"); doc.setTextColor(28,39,51);
+    doc.text(String(value || "—"), pageW - M, y, { align: "right" });
+    y += 20;
+    doc.setDrawColor(240,243,247); doc.line(M, y-8, pageW-M, y-8);
+  });
+  y += 20;
+  doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(140,150,162);
+  doc.text("This receipt confirms payment has been made in full for the invoice referenced above.", M, y);
+  y += 12;
+  doc.text("Please retain this document for your records.", M, y);
+  const h = doc.internal.pageSize.getHeight();
+  doc.setFontSize(7.5); doc.setTextColor(140,150,162);
+  doc.text(BUYER.name + " · Operion Procure", M, h - 24);
+  doc.save((document.getElementById("rcpt-invref").textContent || "payment-receipt") + "-receipt.pdf");
+});
+/* ---------------- Router: decide which screen to show on load ---------------- */
+(function boot(){
+  const docType = params.get("type");
+  if(docType && INVITE_TOKEN){
+    if(docType==="rfq") return openQuoteScreen(INVITE_TOKEN);
+    if(docType==="invoice") return openInvoiceScreen(INVITE_TOKEN);
+    if(docType==="lpo") return openLpoScreen(INVITE_TOKEN);
+    if(docType==="receipt") return openReceiptScreen(INVITE_TOKEN);
+  }
+  if(INVITE_TOKEN){
+    showScreen("screen-create");
+    return;
+  }
+  const supplierId = sessionStorage.getItem("fdho_supplierId");
+  const sessionToken = sessionStorage.getItem("fdho_sessionToken");
+  if(supplierId && sessionToken){
+    showScreen("screen-dashboard");
+    loadDashboard();
+    return;
+  }
+  showScreen("screen-login");
+})();
+</script>
+</body></html>
