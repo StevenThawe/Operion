@@ -424,7 +424,7 @@ function esc(s){
 }
 function validDate(v){ if(!v) return null; const d = new Date(v); return isNaN(d) ? null : d; }
 function tokenOf(url){ try{ return new URL(url, location.href).searchParams.get("token"); }catch(e){ return null; } }
-function invMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+// Fixed format regardless of browser locale: MWK###,###,###.## function invMoney(n){   const v = Number(n) || 0;   return (v < 0 ? "-" : "") + "MWK" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function qMoney(n){ return invMoney(n); }
 async function readJson(res){
   try{ return await res.json(); }catch(e){ return {}; }
