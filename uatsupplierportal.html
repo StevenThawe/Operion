@@ -62,6 +62,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .tab{padding:11px 18px;font-size:13.5px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
 .tab:hover{color:var(--fdh-blue-dark)}
 .tab.active{color:var(--fdh-blue);border-bottom-color:var(--fdh-blue)}
+.tab-desc{font-size:12.5px;color:var(--muted);margin:-4px 0 16px;line-height:1.5}
 .section{display:none} .section.active{display:block}
 .filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
 .filter-pill{font-size:12.5px;font-weight:700;color:var(--muted);background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:7px 15px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
@@ -71,8 +72,13 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .item:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
 .item .icon{width:42px;height:42px;border-radius:10px;background:#eaf1f9;color:var(--fdh-blue);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 auto}
 .item .info{flex:1;min-width:0}
+.item .ref{font-size:10.5px;font-weight:700;color:var(--fdh-blue);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
 .item .title{font-size:15px;font-weight:700;color:var(--ink)}
-.item .meta{font-size:12px;color:var(--muted);margin-top:3px;font-weight:500}
+.item .desc{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item .meta{font-size:12px;color:var(--muted);font-weight:500;display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px}
+.item .meta .dl{font-weight:700;color:var(--ink)}
+.item .meta .dl.soon{color:var(--err)}
+.item .meta .dl.closed{color:var(--muted);text-decoration:line-through}
 .badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:4px 11px;border-radius:20px;flex:0 0 auto;white-space:nowrap}
 .badge.pending{background:var(--warn-bg);color:var(--warn)}
 .badge.submitted{background:var(--ok-bg);color:var(--ok)}
@@ -81,6 +87,11 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .item .act:hover{background:var(--fdh-blue-dark)}
 .item .view{color:var(--fdh-blue);background:#eaf1f9}
 .item .view:hover{background:#dbe9f7}
+@media (max-width:600px){
+  .item{flex-wrap:wrap}
+  .item .info{flex-basis:calc(100% - 58px)}
+  .item .act,.item .view{flex:1}
+}
 .empty{text-align:center;padding:60px 24px;color:var(--muted);font-size:13.5px;background:var(--card);border:1px dashed var(--line);border-radius:12px}
 .loading{text-align:center;padding:70px 24px;color:var(--muted);font-size:13.5px}
 .screen{display:none} .screen.active{display:block}
@@ -117,9 +128,9 @@ h1,h2{font-family:'Lora',Georgia,serif}
 .q-submit-bar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(244,247,250,0) 0%,var(--bg) 30%);padding:20px 0 0}
 .q-submit-bar .btn{box-shadow:var(--shadow-md)}
 .q-msg{padding:13px 16px;border-radius:9px;font-size:13.5px;margin-bottom:18px;display:none;font-weight:600;line-height:1.4}
-.q-msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd}
-.q-msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b7e4cb}
-/* ---- Receipt (ported from receipt.html) ---- */
+.q-msg.err{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd;display:block}
+.q-msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #b7e4cb;display:block}
+/* ---- Receipt ---- */
 .rcpt-hero{background:linear-gradient(120deg,var(--fdh-blue-dark),var(--fdh-blue));color:#fff;padding:26px 28px;margin:-32px -28px 24px}
 .rcpt-hero h1{margin:0 0 4px;font-size:22px;font-weight:600;font-family:'Lora',serif}
 .rcpt-hero p{margin:0;opacity:.9;font-size:14px}
@@ -178,6 +189,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
         <div class="tab active" data-t="pending">Pending Action</div>
         <div class="tab" data-t="history">Submission History</div>
       </div>
+      <p class="tab-desc" id="tabDesc"></p>
       <div class="filters">
         <div class="filter-pill active" data-f="all">All</div>
         <div class="filter-pill" data-f="rfq">Quotations</div>
@@ -242,7 +254,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
         </div>
         <div class="q-card" id="q-termscard" style="display:none">
           <h2>Terms &amp; Requirements</h2>
-          <div style="margin-bottom:14px"><div class="q-meta-grid .k" style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Terms and Conditions</div><div class="q-wraptext" id="q-terms"></div></div>
+          <div style="margin-bottom:14px"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Terms and Conditions</div><div class="q-wraptext" id="q-terms"></div></div>
           <div id="q-deliveryblock"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:6px">Delivery Requirements</div><div class="q-wraptext" id="q-delivery"></div></div>
         </div>
         <div class="q-submit-bar"><button class="btn" id="q-submitBtn" style="width:100%">Submit Quotation</button></div>
@@ -320,7 +332,6 @@ h1,h2{font-family:'Lora',Georgia,serif}
 <div class="screen" id="screen-receipt">
   <div class="detail-topbar"><button class="back-btn" id="receiptBackBtn">← Back to Dashboard</button><span class="dt-title">Payment Receipt</span></div>
   <div style="overflow-y:auto;height:calc(100vh - 68px)">
-    
     <div class="q-wrap">
       <div id="receiptLoading" class="loading">Loading receipt details…</div>
       <div id="receiptContent" style="display:none">
@@ -390,6 +401,14 @@ const LPO_FETCH_FLOW_URL      = FLOW_URLS.LPO_FETCH;
 const LPO_ACK_FLOW_URL        = FLOW_URLS.LPO_ACK;
 const RECEIPT_FETCH_FLOW_URL  = FLOW_URLS.RECEIPT_FETCH;
 // =============================================================
+
+const BUYER = {
+  name: "FDH Financial Holdings Limited",
+  address: ["First Floor, Umoyo House", "Victoria Avenue", "P.O. Box 512", "Blantyre, Malawi"],
+  contact: ["Tel: (265) 111 820 219/397", "Fax: (265) 111 823 044"]
+};
+
+/* ---------------- Shared helpers ---------------- */
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
@@ -399,6 +418,18 @@ async function sha256(text){
   const buf = await crypto.subtle.digest("SHA-256", enc);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
+// Escapes Dataverse text before it is placed in HTML (prevents stored XSS).
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+function validDate(v){ if(!v) return null; const d = new Date(v); return isNaN(d) ? null : d; }
+function tokenOf(url){ try{ return new URL(url, location.href).searchParams.get("token"); }catch(e){ return null; } }
+function invMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function qMoney(n){ return invMoney(n); }
+async function readJson(res){
+  try{ return await res.json(); }catch(e){ return {}; }
+}
+
 /* ---------------- Create Account ---------------- */
 const params = new URLSearchParams(location.search);
 const INVITE_TOKEN = params.get("token");
@@ -418,7 +449,7 @@ document.getElementById("createBtn").addEventListener("click", async () => {
       method: "POST", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ token: INVITE_TOKEN, username, passwordHash })
     });
-    const data = await res.json();
+    const data = await readJson(res);
     if(!res.ok || data.error){ throw new Error(data.error || ("Request failed (" + res.status + ")")); }
     document.getElementById("createFormArea").style.display = "none";
     banner.className = "msg ok";
@@ -429,6 +460,7 @@ document.getElementById("createBtn").addEventListener("click", async () => {
     btn.disabled = false; btn.textContent = "Create Account";
   }
 });
+
 /* ---------------- Login ---------------- */
 async function doLogin(){
   const btn = document.getElementById("loginBtn");
@@ -443,11 +475,13 @@ async function doLogin(){
       method: "POST", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ username, passwordHash })
     });
-    const data = await res.json();
+    const data = await readJson(res);
     if(!res.ok || !data.success){ throw new Error(data.error || "Incorrect username or password."); }
     sessionStorage.setItem("fdho_supplierId", data.supplierId);
     sessionStorage.setItem("fdho_sessionToken", data.sessionToken);
     sessionStorage.setItem("fdho_supplierName", data.supplierName || "");
+    btn.disabled = false; btn.textContent = "Sign In";
+    banner.className = "msg";
     showScreen("screen-dashboard");
     loadDashboard();
   }catch(e){
@@ -457,6 +491,7 @@ async function doLogin(){
 }
 document.getElementById("loginBtn").addEventListener("click", doLogin);
 document.getElementById("l-password").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
+
 /* ---------------- Dashboard ---------------- */
 document.getElementById("logoutBtn").addEventListener("click", () => {
   sessionStorage.clear();
@@ -464,12 +499,22 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 });
 let typeFilter = "all";
 let LAST_ITEMS = [];
+
+const TAB_DESC = {
+  pending: "Items FDH Procurement is waiting on from you: quotations to submit before their deadline, invoices for goods you have delivered, and purchase orders to acknowledge.",
+  history: "Your submitted quotations and invoices, acknowledged purchase orders, and payment receipts. Open any item to view what you submitted."
+};
+function setTabDesc(t){ document.getElementById("tabDesc").textContent = TAB_DESC[t] || ""; }
+setTabDesc("pending");
+
 document.querySelectorAll(".tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
     tab.classList.add("active");
-    document.getElementById("sec-" + tab.getAttribute("data-t")).classList.add("active");
+    const t = tab.getAttribute("data-t");
+    document.getElementById("sec-" + t).classList.add("active");
+    setTabDesc(t);
   });
 });
 document.querySelectorAll(".filter-pill").forEach(pill => {
@@ -480,28 +525,70 @@ document.querySelectorAll(".filter-pill").forEach(pill => {
     renderItems();
   });
 });
+
 const ICONS = { rfq: "📋", invoice: "🧾", lpo: "📦", receipt: "💳" };
+const TYPE_LABEL = { rfq: "Request for Quotation", invoice: "Invoice Request", lpo: "Purchase Order", receipt: "Payment Receipt" };
 const PENDING_LABELS = { rfq: "Submit Quote", invoice: "Submit Invoice", lpo: "Acknowledge Order" };
 const PENDING_BADGE = { rfq: "Pending", invoice: "Pending", lpo: "Awaiting Acknowledgement" };
+const ISSUED_LABEL = { rfq: "Invited", invoice: "Received", lpo: "Issued", receipt: "Paid" };
+
+function deadlineInfo(v){
+  const d = validDate(v);
+  if(!d) return null;
+  const ms = d - Date.now();
+  const when = d.toLocaleDateString(undefined, { day:"numeric", month:"short", year:"numeric" }) + ", " +
+               d.toLocaleTimeString(undefined, { hour:"2-digit", minute:"2-digit" });
+  if(ms <= 0) return { cls: "closed", text: "Closed " + when };
+  const h = Math.floor(ms / 3600000), days = Math.floor(h / 24);
+  const left = days >= 1 ? days + " day" + (days > 1 ? "s" : "") + " left" : h >= 1 ? h + "h left" : "under 1h left";
+  return { cls: h < 48 ? "soon" : "", text: "Due " + when + " · " + left };
+}
+
+// Only render items that exist and are actionable: known type, real token,
+// identifiable record, and (for pending RFQs) an open deadline.
+// Backstop only - the MY_ITEMS flow is the authoritative filter.
+function isValidItem(item){
+  if(!item || !ICONS[item.type] || !item.url || !tokenOf(item.url)) return false;
+  if(!item.title && !item.reference) return false;
+  if(item.type === "rfq" && item.status !== "submitted"){
+    const d = validDate(item.deadline);
+    if(!d || d <= new Date()) return false;
+  }
+  return true;
+}
+
 function itemRow(item){
-  const icon = ICONS[item.type] || "📄";
-  const badge = item.status === "submitted"
+  const submitted = item.status === "submitted";
+  const badge = submitted
     ? '<span class="badge submitted">' + (item.type === "receipt" ? "Paid" : item.type === "lpo" ? "Acknowledged" : "Submitted") + '</span>'
     : '<span class="badge pending">' + (PENDING_BADGE[item.type] || "Pending") + '</span>';
-  const label = item.status === "submitted" ? "View Details" : (PENDING_LABELS[item.type] || "View");
-  const cls = item.status === "submitted" ? "view" : "act";
-  const action = '<button class="' + cls + '" data-url="' + item.url.replace(/"/g,"&quot;") + '" data-title="' + item.title.replace(/"/g,"&quot;") + '" data-type="' + item.type + '" style="border:none;font-family:inherit">' + label + '</button>';
-  return '<div class="item"><div class="icon">' + icon + '</div>' +
-    '<div class="info"><div class="title">' + item.title + '</div>' +
-    '<div class="meta">' + item.meta + '</div></div>' + badge + action + '</div>';
+  const label = submitted ? "View Details" : (PENDING_LABELS[item.type] || "View");
+  const title = item.title || TYPE_LABEL[item.type];
+
+  const meta = [];
+  if(item.type === "rfq"){
+    const dl = deadlineInfo(item.deadline);
+    if(dl) meta.push('<span class="dl ' + dl.cls + '">' + esc(dl.text) + '</span>');
+  }
+  const issued = validDate(item.issuedOn);
+  if(issued) meta.push('<span>' + (ISSUED_LABEL[item.type] || "Date") + ' ' + esc(issued.toLocaleDateString()) + '</span>');
+  if(item.amount != null && item.amount !== "") meta.push('<span>' + esc(invMoney(item.amount)) + '</span>');
+  if(!meta.length && item.meta) meta.push('<span>' + esc(item.meta) + '</span>'); // legacy flow shape
+
+  return '<div class="item"><div class="icon">' + ICONS[item.type] + '</div>' +
+    '<div class="info">' +
+      '<div class="ref">' + esc(TYPE_LABEL[item.type]) + (item.reference ? ' · ' + esc(item.reference) : '') + '</div>' +
+      '<div class="title">' + esc(title) + '</div>' +
+      (item.description ? '<div class="desc">' + esc(item.description) + '</div>' : '') +
+      (meta.length ? '<div class="meta">' + meta.join("") + '</div>' : '') +
+    '</div>' + badge +
+    '<button class="' + (submitted ? "view" : "act") + '" data-url="' + esc(item.url) + '" data-title="' + esc(title) + '" data-type="' + esc(item.type) + '">' + label + '</button></div>';
 }
-// Opens a document inside the portal itself via iframe - the top-level URL
-// never changes, so the supplier is never "navigated away" from the portal,
-// even though the embedded page is the same proven, already-working
-// submission/view page used elsewhere in the system.
+
+// Opens the native screen for the document type; falls back to the iframe
+// for any unknown type so the supplier never leaves the portal.
 function openDetail(url, title, type){
-  var u = new URL(url);
-  var token = u.searchParams.get("token");
+  const token = tokenOf(url);
   if(type === "rfq"){ openQuoteScreen(token); return; }
   if(type === "invoice"){ openInvoiceScreen(token); return; }
   if(type === "lpo"){ openLpoScreen(token); return; }
@@ -514,26 +601,32 @@ document.getElementById("detailBackBtn").addEventListener("click", () => {
   document.getElementById("detailFrame").src = "about:blank";
   showScreen("screen-dashboard");
 });
-// Event delegation: item buttons are re-rendered on every filter/tab change,
-// so listeners are attached once on the container rather than per-button.
+// Event delegation: item buttons are re-rendered on every filter/tab change.
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".act, .view");
   if(!btn || !btn.hasAttribute("data-url")) return;
   e.preventDefault();
   openDetail(btn.getAttribute("data-url"), btn.getAttribute("data-title"), btn.getAttribute("data-type"));
 });
+
+function sortItems(items){
+  // Pending RFQs: soonest deadline first. Everything else: newest first.
+  return items.slice().sort((a, b) => {
+    const ad = validDate(a.deadline), bd = validDate(b.deadline);
+    if(a.status !== "submitted" && b.status !== "submitted" && ad && bd) return ad - bd;
+    const ai = validDate(a.issuedOn), bi = validDate(b.issuedOn);
+    return (bi ? bi.getTime() : 0) - (ai ? ai.getTime() : 0);
+  });
+}
+
 function renderItems(){
-  const allPending = LAST_ITEMS.filter(i => i.status !== "submitted").length;
-  const allSubmitted = LAST_ITEMS.filter(i => i.status === "submitted").length;
-  const allRfq = LAST_ITEMS.filter(i => i.type === "rfq").length;
-  const allInvoice = LAST_ITEMS.filter(i => i.type === "invoice").length;
-  document.getElementById("statPending").textContent = allPending;
-  document.getElementById("statSubmitted").textContent = allSubmitted;
-  document.getElementById("statRfq").textContent = allRfq;
-  document.getElementById("statInvoice").textContent = allInvoice;
+  document.getElementById("statPending").textContent = LAST_ITEMS.filter(i => i.status !== "submitted").length;
+  document.getElementById("statSubmitted").textContent = LAST_ITEMS.filter(i => i.status === "submitted").length;
+  document.getElementById("statRfq").textContent = LAST_ITEMS.filter(i => i.type === "rfq").length;
+  document.getElementById("statInvoice").textContent = LAST_ITEMS.filter(i => i.type === "invoice").length;
   const filtered = typeFilter === "all" ? LAST_ITEMS : LAST_ITEMS.filter(i => i.type === typeFilter);
-  const pending = filtered.filter(i => i.status !== "submitted");
-  const history = filtered.filter(i => i.status === "submitted");
+  const pending = sortItems(filtered.filter(i => i.status !== "submitted"));
+  const history = sortItems(filtered.filter(i => i.status === "submitted"));
   document.getElementById("sec-pending").innerHTML = pending.length
     ? pending.map(itemRow).join("")
     : '<div class="empty">Nothing pending right now. Check back after FDH invites you to a new RFQ or issues an LPO.</div>';
@@ -541,6 +634,7 @@ function renderItems(){
     ? history.map(itemRow).join("")
     : '<div class="empty">No submissions yet.</div>';
 }
+
 async function loadDashboard(){
   const supplierId = sessionStorage.getItem("fdho_supplierId");
   const sessionToken = sessionStorage.getItem("fdho_sessionToken");
@@ -550,7 +644,7 @@ async function loadDashboard(){
       method: "POST", headers: {"Content-Type":"application/json"},
       body: JSON.stringify({ supplierId, sessionToken })
     });
-    const data = await res.json();
+    const data = await readJson(res);
     if(!res.ok || data.error){
       if(data.sessionExpired){ sessionStorage.clear(); showScreen("screen-login"); return; }
       throw new Error(data.error || ("Request failed (" + res.status + ")"));
@@ -559,14 +653,15 @@ async function loadDashboard(){
     document.getElementById("dashContent").style.display = "block";
     const nameToShow = supplierName || data.supplierName || "";
     document.getElementById("supplierNameLabel").textContent = nameToShow;
-    document.getElementById("helloHeading").textContent = "Welcome back, " + (nameToShow || "");
+    document.getElementById("helloHeading").textContent = "Welcome back" + (nameToShow ? ", " + nameToShow : "");
     startClock();
-    LAST_ITEMS = data.items || [];
+    LAST_ITEMS = (data.items || []).filter(isValidItem);
     renderItems();
   }catch(e){
-    document.getElementById("loadingRoot").innerHTML = '<div class="empty">Could not load your items: ' + e.message + '</div>';
+    document.getElementById("loadingRoot").innerHTML = '<div class="empty">Could not load your items: ' + esc(e.message) + '</div>';
   }
 }
+let CLOCK_TIMER = null;
 function startClock(){
   function tick(){
     const now = new Date();
@@ -574,17 +669,12 @@ function startClock(){
       " · " + now.toLocaleTimeString(undefined, { hour:"2-digit", minute:"2-digit", second:"2-digit" });
   }
   tick();
-  setInterval(tick, 1000);
+  if(CLOCK_TIMER) clearInterval(CLOCK_TIMER);
+  CLOCK_TIMER = setInterval(tick, 1000);
 }
-/* ---------------- Native Quote screen ---------------- */
-let Q_TOKEN = null, Q_LINES = [], Q_ATTACHED_FILE = null;
-// Shows a terms-and-conditions footer above a screen's action buttons if
-// text is available for that document; hides the block entirely if not,
-// rather than showing an empty box.
-// Establishes a real session from whatever document-fetch response just
-// returned supplierId/sessionToken - this is what makes "Back to Dashboard"
-// work when arriving via an email link rather than a normal login, since a
-// session token now genuinely exists in sessionStorage from that point on.
+
+// Establishes a session from a document-fetch response that returned
+// supplierId/sessionToken, so "Back to Dashboard" works for email-link arrivals.
 function establishSessionFromResponse(data){
   if(data && data.supplierId && data.sessionToken){
     sessionStorage.setItem("fdho_supplierId", data.supplierId);
@@ -592,18 +682,26 @@ function establishSessionFromResponse(data){
     sessionStorage.setItem("fdho_supplierName", data.supplierName || "");
   }
 }
+function backToDashboard(){
+  showScreen("screen-dashboard");
+  if(sessionStorage.getItem("fdho_sessionToken")) loadDashboard();
+  else showScreen("screen-login");
+}
+// Terms footer above a screen's action buttons; hidden when there is no text.
 function renderTermsFooter(elementId, termsText){
-  var el = document.getElementById(elementId);
+  const el = document.getElementById(elementId);
   if(!el) return;
   if(termsText && termsText.trim()){
-    el.innerHTML = '<span class="terms-heading">Terms &amp; Conditions</span>' + termsText;
+    el.innerHTML = '<span class="terms-heading">Terms &amp; Conditions</span>' + esc(termsText);
     el.style.display = "block";
   } else {
     el.style.display = "none";
   }
 }
-function qMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-document.getElementById("quoteBackBtn").addEventListener("click", () => { showScreen("screen-dashboard"); });
+
+/* ---------------- Native Quote screen ---------------- */
+let Q_TOKEN = null, Q_LINES = [], Q_ATTACHED_FILE = null;
+document.getElementById("quoteBackBtn").addEventListener("click", backToDashboard);
 document.getElementById("q-dropzone").addEventListener("click", () => document.getElementById("q-files").click());
 document.getElementById("q-files").addEventListener("change", (e) => {
   Q_ATTACHED_FILE = e.target.files && e.target.files[0] ? e.target.files[0] : null;
@@ -613,7 +711,8 @@ document.getElementById("q-files").addEventListener("change", (e) => {
 function qRecalc(){
   let grand = 0;
   Q_LINES.forEach((ln, i) => {
-    const price = parseFloat(document.getElementById("qp"+i).value) || 0;
+    const el = document.getElementById("qp"+i);
+    const price = el && el.value !== undefined ? (parseFloat(el.value) || 0) : 0;
     const t = price * (Number(ln.quantity)||0);
     document.getElementById("qt"+i).textContent = qMoney(t);
     grand += t;
@@ -623,8 +722,8 @@ function qRecalc(){
 function qRenderLines(){
   const body = document.getElementById("q-lines-body");
   body.innerHTML = Q_LINES.map((ln, i) => {
-    return '<tr><td>' + (ln.lineNumber||i+1) + '</td>' +
-      '<td>' + (ln.itemDescription||"") + (ln.specification ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + ln.specification + '</div>' : '') + '</td>' +
+    return '<tr><td>' + esc(ln.lineNumber || i+1) + '</td>' +
+      '<td>' + esc(ln.itemDescription) + (ln.specification ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + esc(ln.specification) + '</div>' : '') + '</td>' +
       '<td class="num">' + (Number(ln.quantity)||0) + '</td>' +
       '<td class="num"><input type="number" min="0" step="0.01" id="qp'+i+'" placeholder="0.00"></td>' +
       '<td class="num" id="qt'+i+'">MWK 0.00</td></tr>';
@@ -635,7 +734,7 @@ function qRenderLines(){
 function qLockForm(msg, ok){
   const b = document.getElementById("quoteRootMsg");
   b.className = "q-msg " + (ok ? "ok" : "err");
-  b.innerHTML = "🔒 <strong>This quotation has already been submitted and can no longer be edited.</strong><br>" + msg;
+  b.innerHTML = "🔒 <strong>This quotation has already been submitted and can no longer be edited.</strong><br>" + esc(msg);
   document.getElementById("q-submitBtn").style.display = "none";
   document.getElementById("q-dropzone").style.display = "none";
   document.querySelectorAll("#quoteContent input, #quoteContent textarea").forEach(el => el.disabled = true);
@@ -648,41 +747,51 @@ function qLockForm(msg, ok){
     input.replaceWith(span);
   });
 }
+function qResetForm(){
+  Q_ATTACHED_FILE = null;
+  ["q-deliverydate","q-validity","q-notes","q-files"].forEach(id => { const el = document.getElementById(id); el.value = ""; el.disabled = false; });
+  document.getElementById("q-filelist").textContent = "";
+  document.getElementById("q-dropzone").style.display = "";
+  const btn = document.getElementById("q-submitBtn");
+  btn.style.display = ""; btn.disabled = false; btn.textContent = "Submit Quotation";
+  document.getElementById("q-termscard").style.display = "none";
+  document.getElementById("q-terms").textContent = "";
+  document.getElementById("q-delivery").textContent = "";
+}
 async function openQuoteScreen(token){
   Q_TOKEN = token;
   showScreen("screen-quote");
-  document.getElementById("quoteLoading").style.display = "block";
+  qResetForm();
+  const loading = document.getElementById("quoteLoading");
+  loading.style.display = "block"; loading.textContent = "Loading RFQ…";
   document.getElementById("quoteContent").style.display = "none";
   document.getElementById("quoteRootMsg").className = "q-msg";
-  if(!token){
-    document.getElementById("quoteLoading").innerHTML = "This item is missing its reference token.";
-    return;
-  }
+  if(!token){ loading.textContent = "This item is missing its reference token."; return; }
   try{
     const sep = RFQ_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
     const res = await fetch(RFQ_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+    const data = await readJson(res);
+    if(data.error){ loading.textContent = data.error; return; }
     if(!res.ok) throw new Error("Could not load the RFQ (" + res.status + ").");
-    const data = await res.json();
-    if(data.error){ document.getElementById("quoteLoading").innerHTML = data.error; return; }
     establishSessionFromResponse(data);
     document.getElementById("q-rfqno").textContent = data.rfqNumber || "—";
-    document.getElementById("q-invitationsent").textContent = data.invitationSentOn ? new Date(data.invitationSentOn).toLocaleDateString() : "—";
+    const sent = validDate(data.invitationSentOn);
+    document.getElementById("q-invitationsent").textContent = sent ? sent.toLocaleDateString() : "—";
     document.getElementById("q-rfqtitle").textContent = data.rfqTitle || "—";
     document.getElementById("q-rfqdescription").textContent = data.rfqDescription || "—";
     document.getElementById("quoteTopTitle").textContent = data.rfqTitle || data.subject || "Submit Quotation";
-    if(data.deadline){
-      const d = new Date(data.deadline);
-      document.getElementById("q-deadline").textContent = d.toLocaleString();
-    } else document.getElementById("q-deadline").textContent = "Not specified";
+    const dl = deadlineInfo(data.deadline);
+    document.getElementById("q-deadline").textContent = dl ? dl.text : "Not specified";
     const tc = (data.terms||"").trim(), dr = (data.deliveryRequirements||"").trim();
     if(tc || dr){
       document.getElementById("q-termscard").style.display = "block";
       if(tc) document.getElementById("q-terms").textContent = tc;
+      document.getElementById("q-deliveryblock").style.display = dr ? "" : "none";
       if(dr) document.getElementById("q-delivery").textContent = dr;
     }
     Q_LINES = data.lines || [];
     qRenderLines();
-    document.getElementById("quoteLoading").style.display = "none";
+    loading.style.display = "none";
     document.getElementById("quoteContent").style.display = "block";
     if(data.alreadySubmitted){
       try{
@@ -700,9 +809,15 @@ async function openQuoteScreen(token){
         if(data.submittedNotes) document.getElementById("q-notes").value = data.submittedNotes;
         qLockForm("You have already submitted a quotation for this RFQ. Your submitted pricing is shown below for your records.", true);
       }catch(lockErr){ console.warn(lockErr); }
+    } else if(dl && dl.cls === "closed"){
+      const b = document.getElementById("quoteRootMsg");
+      b.className = "q-msg err"; b.textContent = "The submission deadline for this RFQ has passed. Quotations can no longer be submitted.";
+      document.getElementById("q-submitBtn").style.display = "none";
+      document.getElementById("q-dropzone").style.display = "none";
+      document.querySelectorAll("#quoteContent input, #quoteContent textarea").forEach(el => el.disabled = true);
     }
   }catch(e){
-    document.getElementById("quoteLoading").innerHTML = e.message || "Failed to load the RFQ.";
+    loading.textContent = e.message || "Failed to load the RFQ.";
   }
 }
 function qFileToBase64(file){
@@ -716,49 +831,39 @@ function qFileToBase64(file){
 document.getElementById("q-submitBtn").addEventListener("click", async () => {
   const btn = document.getElementById("q-submitBtn");
   const banner = document.getElementById("quoteRootMsg");
+  const fail = (m) => { banner.className = "q-msg err"; banner.textContent = m; window.scrollTo({top:0, behavior:"smooth"}); };
   const lineData = Q_LINES.map((ln, i) => ({
     rfqLineId: ln.rfqLineId, itemDescription: ln.itemDescription, quantity: ln.quantity,
     unitPrice: parseFloat(document.getElementById("qp"+i).value) || 0
   }));
-  if(lineData.some(l => l.unitPrice <= 0)){
-    banner.className = "q-msg err"; banner.textContent = "Please enter a unit price for every line item.";
-    window.scrollTo({top:0, behavior:"smooth"}); return;
-  }
+  if(lineData.some(l => l.unitPrice <= 0)) return fail("Please enter a unit price for every line item.");
   const deliveryDate = document.getElementById("q-deliverydate").value;
   const validity = document.getElementById("q-validity").value;
   const notes = document.getElementById("q-notes").value.trim();
-  if(!deliveryDate){
-    banner.className = "q-msg err"; banner.textContent = "Please provide your expected delivery date.";
-    window.scrollTo({top:0, behavior:"smooth"}); return;
-  }
-  if(!validity){
-    banner.className = "q-msg err"; banner.textContent = "Please provide your quote validity (days).";
-    window.scrollTo({top:0, behavior:"smooth"}); return;
-  }
-  if(!notes){
-    banner.className = "q-msg err"; banner.textContent = "Please provide notes/comments with your quotation.";
-    window.scrollTo({top:0, behavior:"smooth"}); return;
-  }
-  if(!Q_ATTACHED_FILE){
-    banner.className = "q-msg err"; banner.textContent = "Please attach your quotation document — it is required.";
-    window.scrollTo({top:0, behavior:"smooth"}); return;
-  }
+  if(!deliveryDate) return fail("Please provide your expected delivery date.");
+  if(!validity) return fail("Please provide your quote validity (days).");
+  if(!notes) return fail("Please provide notes/comments with your quotation.");
+  if(!Q_ATTACHED_FILE) return fail("Please attach your quotation document — it is required.");
   btn.disabled = true; btn.textContent = "Submitting…";
   try{
     const fileBase64 = await qFileToBase64(Q_ATTACHED_FILE);
     const payload = {
       token: Q_TOKEN,
       deliveryDate: deliveryDate,
-      validity: parseInt(validity) || null,
+      validity: parseInt(validity, 10) || null,
       notes: notes,
       lines: lineData,
       attachmentName: Q_ATTACHED_FILE.name,
       attachmentBase64: fileBase64
     };
     const res = await fetch(RFQ_SUBMIT_FLOW_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
-    if(!res.ok) throw new Error("Submission failed (" + res.status + ").");
+    if(!res.ok){
+      const data = await readJson(res);
+      throw new Error(data.error || ("Submission failed (" + res.status + ")."));
+    }
     banner.className = "q-msg ok"; banner.textContent = "✓ Your quotation has been submitted successfully.";
     document.querySelectorAll("#quoteContent input, #quoteContent textarea").forEach(el => el.disabled = true);
+    document.getElementById("q-dropzone").style.display = "none";
     btn.style.display = "none";
     window.scrollTo({top:0, behavior:"smooth"});
   }catch(e){
@@ -766,21 +871,20 @@ document.getElementById("q-submitBtn").addEventListener("click", async () => {
     btn.disabled = false; btn.textContent = "Submit Quotation";
   }
 });
+
 /* ---------------- Native Invoice screen ---------------- */
 let INV_TOKEN = null, INV_LINES = [], INV_ATTACHMENT = null;
-function invMoney(n){ return "MWK " + (Number(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
-document.getElementById("invoiceBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
-
+document.getElementById("invoiceBackBtn").addEventListener("click", backToDashboard);
 document.getElementById("inv-attachment").addEventListener("change", function(){
-  var file = this.files && this.files[0];
+  const file = this.files && this.files[0];
   if(!file){ INV_ATTACHMENT = null; document.getElementById("inv-filename").textContent = ""; return; }
   if(file.size > 8*1024*1024){
     document.getElementById("inv-filename").textContent = "";
-    var b = document.getElementById("invoiceRootMsg");
-    b.className = "q-msg err"; b.textContent = "That file is larger than 8 MB. Please attach a smaller file."; b.style.display = "block";
+    const b = document.getElementById("invoiceRootMsg");
+    b.className = "q-msg err"; b.textContent = "That file is larger than 8 MB. Please attach a smaller file.";
     this.value = ""; INV_ATTACHMENT = null; return;
   }
-  var reader = new FileReader();
+  const reader = new FileReader();
   reader.onload = function(){
     INV_ATTACHMENT = { name: file.name, contentBase64: String(reader.result).split(",")[1] };
     document.getElementById("inv-filename").textContent = "Attached: " + file.name;
@@ -797,29 +901,41 @@ function invRenderLines(){
     const price = pick(ln, ["awardedPrice","unitPrice","awardedUnitPrice"]) || 0;
     const total = Number(qty) * Number(price);
     grand += total;
-    return '<tr><td>' + desc + '</td><td class="num">' + qty + '</td><td class="num">' + invMoney(price) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
+    return '<tr><td>' + esc(desc) + '</td><td class="num">' + esc(qty) + '</td><td class="num">' + invMoney(price) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
   }).join("");
   document.getElementById("inv-grandtotal").textContent = invMoney(grand);
+}
+function invResetForm(){
+  INV_ATTACHMENT = null;
+  ["inv-number","inv-date","inv-notes","inv-attachment"].forEach(id => { const el = document.getElementById(id); el.value = ""; el.disabled = false; });
+  document.getElementById("inv-filename").textContent = "";
+  const btn = document.getElementById("inv-submitBtn");
+  btn.style.display = ""; btn.disabled = false; btn.textContent = "Submit Invoice";
 }
 async function openInvoiceScreen(token){
   INV_TOKEN = token;
   showScreen("screen-invoice");
-  document.getElementById("invoiceLoading").style.display = "block";
+  invResetForm();
+  const loading = document.getElementById("invoiceLoading");
+  loading.style.display = "block"; loading.textContent = "Loading…";
   document.getElementById("invoiceContent").style.display = "none";
   document.getElementById("invoiceRootMsg").className = "q-msg";
+  if(!token){ loading.textContent = "This item is missing its reference token."; return; }
   try{
     const sep = INVOICE_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
-const res = await fetch(INVOICE_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
-if(!res.ok) throw new Error("Could not load the invoice (" + res.status + ").");
-const data = await res.json();
+    const res = await fetch(INVOICE_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+    const data = await readJson(res);
+    if(data.error){ loading.textContent = data.error; return; }
+    if(!res.ok) throw new Error("Could not load the invoice (" + res.status + ").");
     establishSessionFromResponse(data);
     document.getElementById("inv-grn").textContent = data.grnNumber || "—";
     document.getElementById("inv-lpo").textContent = data.lpoNumber || "—";
-    document.getElementById("inv-received").textContent = data.receivedDate ? new Date(data.receivedDate).toLocaleDateString() : "—";
+    const rec = validDate(data.receivedDate);
+    document.getElementById("inv-received").textContent = rec ? rec.toLocaleDateString() : "—";
     document.getElementById("invoiceTopTitle").textContent = "Invoice for " + (data.grnNumber || "Delivery");
     INV_LINES = data.lines || [];
     invRenderLines();
-    document.getElementById("invoiceLoading").style.display = "none";
+    loading.style.display = "none";
     document.getElementById("invoiceContent").style.display = "block";
     renderTermsFooter("inv-terms-footer", data.terms);
     if(data.alreadySubmitted){
@@ -834,7 +950,7 @@ const data = await res.json();
       document.querySelectorAll("#invoiceContent input, #invoiceContent textarea").forEach(el => el.disabled = true);
     }
   }catch(e){
-    document.getElementById("invoiceLoading").textContent = e.message || "Failed to load.";
+    loading.textContent = e.message || "Failed to load.";
   }
 }
 document.getElementById("inv-submitBtn").addEventListener("click", async () => {
@@ -843,11 +959,11 @@ document.getElementById("inv-submitBtn").addEventListener("click", async () => {
   const invoiceNumber = document.getElementById("inv-number").value.trim();
   const invoiceDate = document.getElementById("inv-date").value;
   if(!invoiceNumber || !invoiceDate){
-    banner.className = "q-msg err"; banner.textContent = "Invoice number and date are required."; banner.style.display = "block";
+    banner.className = "q-msg err"; banner.textContent = "Invoice number and date are required.";
     window.scrollTo({top:0, behavior:"smooth"}); return;
   }
   if(!INV_ATTACHMENT){
-    banner.className = "q-msg err"; banner.textContent = "Please attach your invoice document — it is required."; banner.style.display = "block";
+    banner.className = "q-msg err"; banner.textContent = "Please attach your invoice document — it is required.";
     window.scrollTo({top:0, behavior:"smooth"}); return;
   }
   const lineData = INV_LINES.map(ln => ({
@@ -868,7 +984,10 @@ document.getElementById("inv-submitBtn").addEventListener("click", async () => {
       attachmentBase64: INV_ATTACHMENT.contentBase64
     };
     const res = await fetch(INVOICE_SUBMIT_FLOW_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(payload) });
-    if(!res.ok) throw new Error("Submission failed (" + res.status + ").");
+    if(!res.ok){
+      const data = await readJson(res);
+      throw new Error(data.error || ("Submission failed (" + res.status + ")."));
+    }
     banner.className = "q-msg ok"; banner.textContent = "✓ Your invoice has been submitted successfully.";
     document.querySelectorAll("#invoiceContent input, #invoiceContent textarea").forEach(el => el.disabled = true);
     btn.style.display = "none";
@@ -877,49 +996,58 @@ document.getElementById("inv-submitBtn").addEventListener("click", async () => {
     btn.disabled = false; btn.textContent = "Submit Invoice";
   }
 });
+
 /* ---------------- Native LPO screen ---------------- */
 let LPO_TOKEN = null, LPO_DATA = null, LPO_LINES = [];
-document.getElementById("lpoBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
+document.getElementById("lpoBackBtn").addEventListener("click", backToDashboard);
 async function openLpoScreen(token){
   LPO_TOKEN = token;
+  LPO_DATA = null;
   showScreen("screen-lpo");
-  document.getElementById("lpoLoading").style.display = "block";
+  const loading = document.getElementById("lpoLoading");
+  loading.style.display = "block"; loading.textContent = "Loading…";
   document.getElementById("lpoContent").style.display = "none";
   document.getElementById("lpoRootMsg").className = "q-msg";
+  const ackBtn = document.getElementById("lpo-ackBtn");
+  ackBtn.style.display = ""; ackBtn.disabled = false; ackBtn.textContent = "Acknowledge Order";
+  if(!token){ loading.textContent = "This item is missing its reference token."; return; }
   try{
     const sep = LPO_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
     const res = await fetch(LPO_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+    const data = await readJson(res);
+    if(data.error){ loading.textContent = data.error; return; }
     if(!res.ok) throw new Error("Could not load this order (" + res.status + ").");
-    const data = await res.json();
-    if(data.error){ document.getElementById("lpoLoading").textContent = data.error; return; }
     establishSessionFromResponse(data);
     LPO_DATA = data;
     document.getElementById("lpo-number").textContent = data.lpoNumber || "—";
     document.getElementById("lpoTopTitle").textContent = data.lpoNumber || "Purchase Order";
-    document.getElementById("lpo-date").textContent = data.orderDate ? new Date(data.orderDate).toLocaleDateString() : "—";
-    document.getElementById("lpo-deliverydate").textContent = data.deliveryDateRequired ? new Date(data.deliveryDateRequired).toLocaleDateString() : "—";
+    const od = validDate(data.orderDate), dd = validDate(data.deliveryDateRequired);
+    document.getElementById("lpo-date").textContent = od ? od.toLocaleDateString() : "—";
+    document.getElementById("lpo-deliverydate").textContent = dd ? dd.toLocaleDateString() : "—";
     document.getElementById("lpo-total").textContent = invMoney(data.totalAmount);
     document.getElementById("lpo-address").textContent = data.deliveryAddress || "—";
     document.getElementById("lpo-paymentterms").textContent = data.paymentTerms || "—";
     document.getElementById("lpo-terms").textContent = data.terms || "—";
     LPO_LINES = data.lines || [];
     let grand = 0;
-    document.getElementById("lpo-lines-body").innerHTML = LPO_LINES.map((ln,i) => {
+    document.getElementById("lpo-lines-body").innerHTML = LPO_LINES.map(ln => {
       const total = Number(ln.lineTotal) || (Number(ln.quantity)||0)*(Number(ln.unitPrice)||0);
       grand += total;
-      return '<tr><td>' + (ln.itemDescription||"") + '</td><td class="num">' + (Number(ln.quantity)||0) + '</td><td class="num">' + invMoney(ln.unitPrice) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
+      return '<tr><td>' + esc(ln.itemDescription) + '</td><td class="num">' + (Number(ln.quantity)||0) + '</td><td class="num">' + invMoney(ln.unitPrice) + '</td><td class="num">' + invMoney(total) + '</td></tr>';
     }).join("");
     document.getElementById("lpo-grandtotal").textContent = invMoney(data.totalAmount || grand);
-    document.getElementById("lpoLoading").style.display = "none";
+    loading.style.display = "none";
     document.getElementById("lpoContent").style.display = "block";
     renderTermsFooter("lpo-terms-footer", data.terms);
-    if(data.acknowledgedOn){
-      document.getElementById("lpoRootMsg").className = "q-msg ok";
-      document.getElementById("lpoRootMsg").innerHTML = "🔒 <strong>This order has already been acknowledged.</strong><br>Acknowledged on " + new Date(data.acknowledgedOn).toLocaleString() + ".";
-      document.getElementById("lpo-ackBtn").style.display = "none";
+    const ack = validDate(data.acknowledgedOn);
+    if(ack){
+      const b = document.getElementById("lpoRootMsg");
+      b.className = "q-msg ok";
+      b.innerHTML = "🔒 <strong>This order has already been acknowledged.</strong><br>Acknowledged on " + esc(ack.toLocaleString()) + ".";
+      ackBtn.style.display = "none";
     }
   }catch(e){
-    document.getElementById("lpoLoading").textContent = e.message || "Failed to load.";
+    loading.textContent = e.message || "Failed to load.";
   }
 }
 document.getElementById("lpo-ackBtn").addEventListener("click", async () => {
@@ -928,10 +1056,12 @@ document.getElementById("lpo-ackBtn").addEventListener("click", async () => {
   btn.disabled = true; btn.textContent = "Acknowledging…";
   try{
     const res = await fetch(LPO_ACK_FLOW_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ token: LPO_TOKEN }) });
-    if(!res.ok) throw new Error("Could not acknowledge (" + res.status + ").");
+    if(!res.ok){
+      const data = await readJson(res);
+      throw new Error(data.error || ("Could not acknowledge (" + res.status + ")."));
+    }
     banner.className = "q-msg ok"; banner.textContent = "✓ Order acknowledged.";
     btn.style.display = "none";
-    loadDashboard();
   }catch(e){
     banner.className = "q-msg err"; banner.textContent = e.message;
     btn.disabled = false; btn.textContent = "Acknowledge Order";
@@ -996,9 +1126,7 @@ document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
     doc.text("Required by: " + new Date(LPO_DATA.deliveryDateRequired).toLocaleDateString(), M+colW+20, ry);
     ry += 12;
   }
-  // Measures both columns' real bottom edge and starts the table below
-  // whichever is taller, instead of a fixed offset that assumed a short
-  // address - prevents the table drawing over unfinished text.
+  // Start the table below whichever column is taller.
   y = Math.max(supplierEndY, ry) + 24;
   doc.autoTable({
     startY: y,
@@ -1027,41 +1155,29 @@ document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
   addBlock("Payment Terms", LPO_DATA.paymentTerms);
   addBlock("Terms and Conditions", LPO_DATA.terms);
 
-  // Approved By block - signature, name, and position of whoever approved
-  // the final level of this order's approval chain.
+  // Approved By block - signature, name and position of the final approver.
   if(LPO_DATA.approverSignatureBase64 || LPO_DATA.approverName){
     if(y > doc.internal.pageSize.getHeight() - 140){ doc.addPage(); y = 60; }
     y += 10;
     doc.setDrawColor(226,232,240); doc.line(M, y, pageW - M, y); y += 24;
-
     doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(0,83,155);
     doc.text("APPROVED BY", M, y); y += 16;
-
     if(LPO_DATA.approverSignatureBase64){
       try{
-        var sigData = LPO_DATA.approverSignatureBase64;
-        var sigPrefix = sigData.indexOf("data:image") === 0 ? "" : "data:image/png;base64,";
-        var sigDataUrl = sigPrefix + sigData;
-        // jsPDF's own getImageProperties reads the real pixel dimensions
-        // synchronously - no Image()/onload race condition, no guessing.
-        var props = doc.getImageProperties(sigDataUrl);
-        // Fixed target width per request (300-400px range), height scaled
-        // proportionally from whatever the stored image'''s actual aspect
-        // ratio is, so it isn'''t stretched/distorted further.
-        var sigW = 100; // ~1.4 inches wide, standard signature block size
-        var sigH = props.width > 0 ? sigW * (props.height / props.width) : 90;
+        const sigData = LPO_DATA.approverSignatureBase64;
+        const sigDataUrl = (sigData.indexOf("data:image") === 0 ? "" : "data:image/png;base64,") + sigData;
+        const props = doc.getImageProperties(sigDataUrl);
+        const sigW = 100;
+        const sigH = props.width > 0 ? sigW * (props.height / props.width) : 90;
         doc.addImage(sigDataUrl, "PNG", M, y, sigW, sigH);
         y += sigH + 8;
       }catch(sigErr){ console.warn("Could not render signature image:", sigErr); y += 8; }
     } else {
       y += 8;
     }
-
     doc.setDrawColor(180,190,200); doc.line(M, y, M + 160, y); y += 14;
-
     doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(28,39,51);
     doc.text(LPO_DATA.approverName || "—", M, y); y += 13;
-
     doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(90,100,112);
     doc.text(LPO_DATA.approverPosition || "", M, y); y += 20;
   }
@@ -1076,25 +1192,24 @@ document.getElementById("lpo-pdfBtn").addEventListener("click", () => {
   }
   doc.save((LPO_DATA.lpoNumber || "purchase-order") + ".pdf");
 });
+
 /* ---------------- Native Receipt screen ---------------- */
-document.getElementById("receiptBackBtn").addEventListener("click", () => showScreen("screen-dashboard"));
-const BUYER = {
-  name: "FDH Financial Holdings Limited",
-  address: ["First Floor, Umoyo House", "Victoria Avenue", "P.O. Box 512", "Blantyre, Malawi"],
-  contact: ["Tel: (265) 111 820 219/397", "Fax: (265) 111 823 044"]
-};
+document.getElementById("receiptBackBtn").addEventListener("click", backToDashboard);
 let LAST_RECEIPT = null;
-function rcptDateOnly(v){ if(!v) return ""; const d = new Date(v); return isNaN(d) ? "" : d.toLocaleDateString(); }
+function rcptDateOnly(v){ const d = validDate(v); return d ? d.toLocaleDateString() : ""; }
 async function openReceiptScreen(token){
+  LAST_RECEIPT = null;
   showScreen("screen-receipt");
-  document.getElementById("receiptLoading").style.display = "block";
+  const loading = document.getElementById("receiptLoading");
+  loading.style.display = "block"; loading.textContent = "Loading receipt details…";
   document.getElementById("receiptContent").style.display = "none";
+  if(!token){ loading.textContent = "This item is missing its reference token."; return; }
   try{
     const sep = RECEIPT_FETCH_FLOW_URL.indexOf("?") >= 0 ? "&" : "?";
     const res = await fetch(RECEIPT_FETCH_FLOW_URL + sep + "token=" + encodeURIComponent(token));
+    const data = await readJson(res);
+    if(data.error){ loading.innerHTML = '<div class="q-msg err">' + esc(data.error) + '</div>'; return; }
     if(!res.ok) throw new Error("Could not load this receipt (" + res.status + ").");
-    const data = await res.json();
-    if(data.error){ document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + data.error + '</div>'; return; }
     establishSessionFromResponse(data);
     LAST_RECEIPT = data;
     document.getElementById("rcpt-amount").textContent = invMoney(data.amountApplied);
@@ -1105,11 +1220,11 @@ async function openReceiptScreen(token){
     const PAYMENT_METHOD_LABELS = { 930290000: "Bank Transfer", 930290001: "Cheque", 930290002: "Mobile Money" };
     document.getElementById("rcpt-method").textContent = PAYMENT_METHOD_LABELS[data.paymentMethod] || data.paymentMethod || "—";
     document.getElementById("rcpt-supplier").textContent = data.supplierName || "—";
-    document.getElementById("receiptLoading").style.display = "none";
+    loading.style.display = "none";
     document.getElementById("receiptContent").style.display = "block";
     renderTermsFooter("rcpt-terms-footer", data.terms);
   }catch(e){
-    document.getElementById("receiptLoading").innerHTML = '<div class="q-msg err" style="display:block">' + (e.message || "Failed to load.") + '</div>';
+    loading.innerHTML = '<div class="q-msg err">' + esc(e.message || "Failed to load.") + '</div>';
   }
 }
 document.getElementById("rcpt-downloadBtn").addEventListener("click", () => {
@@ -1164,6 +1279,7 @@ document.getElementById("rcpt-downloadBtn").addEventListener("click", () => {
   doc.text(BUYER.name + " · Operion Procure", M, h - 24);
   doc.save((document.getElementById("rcpt-invref").textContent || "payment-receipt") + "-receipt.pdf");
 });
+
 /* ---------------- Router: decide which screen to show on load ---------------- */
 (function boot(){
   const docType = params.get("type");
