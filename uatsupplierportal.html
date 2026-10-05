@@ -549,10 +549,11 @@ function deadlineInfo(v){
 // Backstop only - the MY_ITEMS flow is the authoritative filter.
 function isValidItem(item){
   if(!item || !ICONS[item.type] || !item.url || !tokenOf(item.url)) return false;
-  if(!item.title && !item.reference) return false;
+  // Tolerates the legacy flow shape (no title/deadline) until MY_ITEMS returns them.
+  // Expired RFQs are still dropped whenever a deadline is supplied.
   if(item.type === "rfq" && item.status !== "submitted"){
     const d = validDate(item.deadline);
-    if(!d || d <= new Date()) return false;
+    if(d && d <= new Date()) return false;
   }
   return true;
 }
