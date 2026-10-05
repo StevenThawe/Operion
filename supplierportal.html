@@ -238,7 +238,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
           <h2>Item Pricing</h2>
           <table class="q-table"><thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">Unit Price (MWK)</th><th class="num">Line Total</th></tr></thead>
           <tbody id="q-lines-body"></tbody></table>
-          <div class="q-grand">Total Quoted:&nbsp;<span class="amt" id="q-grandtotal">MWK 0.00</span></div>
+          <div class="q-grand">Total Quoted:&nbsp;<span class="amt" id="q-grandtotal">MWK0.00</span></div>
         </div>
         <div class="q-card">
           <h2>Additional Information</h2>
@@ -278,7 +278,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
       <div class="q-card"><h2>Line Items (Locked to Delivery)</h2>
         <table class="q-table"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Line Total</th></tr></thead>
         <tbody id="inv-lines-body"></tbody></table>
-        <div class="q-grand">Invoice Amount:&nbsp;<span class="amt" id="inv-grandtotal">MWK 0.00</span></div>
+        <div class="q-grand">Invoice Amount:&nbsp;<span class="amt" id="inv-grandtotal">MWK0.00</span></div>
       </div>
       <div class="q-card"><h2>Your Invoice Details</h2>
         <div class="q-field"><label>Invoice Number <span style="color:var(--err)">*</span></label><input type="text" id="inv-number"></div>
@@ -313,7 +313,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
       <div class="q-card"><h2>Order Lines</h2>
         <table class="q-table"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Line Total</th></tr></thead>
         <tbody id="lpo-lines-body"></tbody></table>
-        <div class="q-grand">Order Total:&nbsp;<span class="amt" id="lpo-grandtotal">MWK 0.00</span></div>
+        <div class="q-grand">Order Total:&nbsp;<span class="amt" id="lpo-grandtotal">MWK0.00</span></div>
       </div>
       <div class="q-card"><h2>Delivery &amp; Payment</h2>
         <div class="q-field"><label>Delivery Address</label><div class="q-wraptext" id="lpo-address">—</div></div>
@@ -337,7 +337,7 @@ h1,h2{font-family:'Lora',Georgia,serif}
       <div id="receiptContent" style="display:none">
         <div class="q-card">
           <span class="rcpt-stamp">✓ Paid in Full</span>
-          <div class="rcpt-amt" id="rcpt-amount">MWK 0.00</div>
+          <div class="rcpt-amt" id="rcpt-amount">MWK0.00</div>
           <div class="q-meta-grid" style="margin-top:18px">
             <div><div class="k">Invoice Reference</div><div class="v" id="rcpt-invref">—</div></div>
             <div><div class="k">Your Invoice Number</div><div class="v" id="rcpt-suppliernum">—</div></div>
@@ -423,8 +423,12 @@ function esc(s){
   return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 }
 function validDate(v){ if(!v) return null; const d = new Date(v); return isNaN(d) ? null : d; }
-function tokenOf(url){ try{ return new URL(url, location.href).searchParams.get("token"); }catch(e){ return null; } } // Fixed format regardless of browser locale: MWK###,###,###.## function invMoney(n){   const v = Number(n) || 0;   return (v < 0 ? "-" : "") + "MWK" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); } // Fixed format regardless of browser locale: MWK###,###,###.## function invMoney(n){   const v = Number(n) || 0;   return (v < 0 ? "-" : "") + "MWK" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-// Fixed format regardless of browser locale: MWK###,###,###.## function invMoney(n){   const v = Number(n) || 0;   return (v < 0 ? "-" : "") + "MWK" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function tokenOf(url){ try{ return new URL(url, location.href).searchParams.get("token"); }catch(e){ return null; } }
+// Fixed format regardless of browser locale: MWK###,###,###.##
+function invMoney(n){
+  const v = Number(n) || 0;
+  return (v < 0 ? "-" : "") + "MWK" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 function qMoney(n){ return invMoney(n); }
 async function readJson(res){
   try{ return await res.json(); }catch(e){ return {}; }
@@ -732,7 +736,7 @@ function qRenderLines(){
       '<td>' + esc(ln.itemDescription) + (ln.specification ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + esc(ln.specification) + '</div>' : '') + '</td>' +
       '<td class="num">' + (Number(ln.quantity)||0) + '</td>' +
       '<td class="num"><input type="number" min="0" step="0.01" id="qp'+i+'" placeholder="0.00"></td>' +
-      '<td class="num" id="qt'+i+'">MWK 0.00</td></tr>';
+      '<td class="num" id="qt'+i+'">MWK0.00</td></tr>';
   }).join("");
   Q_LINES.forEach((_, i) => document.getElementById("qp"+i).addEventListener("input", qRecalc));
   qRecalc();
