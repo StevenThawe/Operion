@@ -536,6 +536,10 @@ const PENDING_LABELS = { rfq: "Submit Quote", invoice: "Submit Invoice", lpo: "A
 const PENDING_BADGE = { rfq: "Pending", invoice: "Pending", lpo: "Awaiting Acknowledgement" };
 const ISSUED_LABEL = { rfq: "Invited", invoice: "Received", lpo: "Issued", receipt: "Paid" };
 
+// Reformats any "MWK <number>" inside flow-built text (e.g. legacy meta) to MWK###,###,###.##
+function formatMetaMoney(text){
+  return String(text == null ? "" : text).replace(/MWK\s*(-?[\d,]+(?:\.\d+)?)/gi, (m, num) => invMoney(num.replace(/,/g, "")));
+}
 function deadlineInfo(v){
   const d = validDate(v);
   if(!d) return null;
@@ -576,7 +580,7 @@ function itemRow(item){
   const issued = validDate(item.issuedOn);
   if(issued) meta.push('<span>' + (ISSUED_LABEL[item.type] || "Date") + ' ' + esc(issued.toLocaleDateString()) + '</span>');
   if(item.amount != null && item.amount !== "") meta.push('<span>' + esc(invMoney(item.amount)) + '</span>');
-  if(!meta.length && item.meta) meta.push('<span>' + esc(item.meta) + '</span>'); // legacy flow shape
+  if(!meta.length && item.meta) meta.push('<span>' + esc(formatMetaMoney(item.meta)) + '</span>'); // legacy flow shape
 
   return '<div class="item"><div class="icon">' + ICONS[item.type] + '</div>' +
     '<div class="info">' +
